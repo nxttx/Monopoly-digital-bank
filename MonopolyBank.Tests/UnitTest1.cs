@@ -1,6 +1,7 @@
 ﻿using MonopolyBank.Domain;
 using Shouldly;
 using Xunit;
+using Xunit.Internal;
 
 namespace MonopolyBank.Tests;
 
@@ -437,6 +438,28 @@ public class Tests
         bankersAnotherUser.ShouldNotBeNull();
         bankersAnotherUser.Money.ShouldBe(1600);
     }
+
+    [Fact]
+    public void BankerShouldBeAbleToSetTheBeginningAmountOfMoney()
+    {
+        var user = new User("Jan");
+        var anotherUser = new User("Bob");
+        var banker = new User("Mick", UserType.Banker);
+        var game = new Game();
+        game.AddUser(user);
+        game.AddUser(anotherUser);
+        game.AddUser(banker);
+
+        banker.Banker.SetStartAmount(2000);
+
+        banker.Banker.StartAmount.ShouldBe(2000);
+        game.Users.ShouldAllBe(u => u.Player.Money == 2000);
+        
+        game.Start();
+        
+        banker.Banker.Players.ShouldAllBe(p => p.Money == 2000);
+    }
+    
 }
 
 internal static class ShouldlyExtensions

@@ -11,6 +11,19 @@ public class Banker : Role
     public IEnumerable<Player> Players =>
         Game?.Users.Where(u => u.IsPlayer).Select(u => u.Player) ?? [];
 
+    public int StartAmount { get; private set; } = 1500;
+
+    public void SetStartAmount(int amount)
+    {
+        StartAmount = amount;
+
+        if (Game is null)
+            return;
+
+        foreach (var user in Game.Users)
+            user.Player.Adjust(amount - user.Player.Money);
+    }
+
     public void TransferMoney(Player to, int amount)
     {
         if (Game is not { Started: true })
