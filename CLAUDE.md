@@ -26,6 +26,7 @@ A Monopoly banking domain, built with **DDD** and strict **TDD**. The user has R
 - The `Banker` has unlimited money: giving money doesn't decrease anything.
 - Role guards are sender-side: transferring without the matching role throws `InvalidOperationException` (receiving is not guarded).
 - Negative amounts: players cannot transfer them (no stealing); the Banker CAN — a negative bank transfer is how the bank collects taxes/fees.
+- Invariant: a player's balance can never go negative — players can't overpay, and the bank can't collect more than the player has (both throw, balances untouched).
 - `Game` was removed when its test was dropped — recreate it only when a test demands it.
 
 ## Tech notes
