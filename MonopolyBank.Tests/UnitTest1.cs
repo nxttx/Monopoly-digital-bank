@@ -218,4 +218,31 @@ public class Tests
             .Message.ShouldBe("Cannot transfer money to another user from another game.");
         
     }
+    
+    [Fact]
+    public void AUserCannotTransferMoneyToAnotherUserFromAnotherGameWithBankerRole()
+    {
+        var user = new User(UserType.Banker);
+        var anotherUser = new User();
+
+        var game1 = new Game();
+        var game2 = new Game();
+        game1.AddUser(user);
+        game2.AddUser(anotherUser);
+        Should.Throw<CrossGameAccessException>(() => user.Player.TransferMoney(anotherUser.Player, 100))
+            .Message.ShouldBe("Cannot transfer money to another user from another game.");
+    }
+    
+    [Fact]
+    public void AUserCannotBeAddedToTwoDifferentGames()
+    {
+        var user = new User(UserType.Player);
+        var anotherUser = new User();
+
+        var game1 = new Game();
+        var game2 = new Game();
+        game1.AddUser(user);
+        Should.Throw<InvalidOperationException>(() => game2.AddUser(user))
+            .Message.ShouldBe("A user cannot be added to two different games.");
+    }
 }

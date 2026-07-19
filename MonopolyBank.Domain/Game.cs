@@ -8,6 +8,9 @@ public class Game
 
     public void AddUser(User user)
     {
+        if (user.Player.Game is not null)
+            throw new InvalidOperationException("A user cannot be added to two different games.");
+
         if (user.IsBanker && _users.Any(u => u.IsBanker))
             throw new DuplicateBankerException();
 
