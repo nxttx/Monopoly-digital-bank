@@ -487,11 +487,12 @@ public class Tests
         game.AddUser(banker);
         game.Start();
 
-        Assert.Throws<InvalidOperationException>(() => banker.Banker.SetStartAmount(2000));
+        Assert.Throws<GameHasStartedException>(() => banker.Banker.SetStartAmount(2000))
+            .Message.ShouldBe("Cannot set the start amount of money when the game has started.");
     }
     
     [Fact]
-    public void APlayerThatJoinsTheGameLaterShouldGetTheAjustedAmountOfStartingMoney()
+    public void APlayerThatJoinsTheGameLaterShouldGetTheAdjustedAmountOfStartingMoney()
     {
         var user = new User("Jan");
         var anotherUser = new User("Bob");
