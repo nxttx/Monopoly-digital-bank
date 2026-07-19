@@ -37,5 +37,6 @@ public class Banker : Role
         EnsureHasRole();
 
         to.Adjust(amount);
+        Game.Ledger.Add(new Transaction(this, to, amount));
     }
 }

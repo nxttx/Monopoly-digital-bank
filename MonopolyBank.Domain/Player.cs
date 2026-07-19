@@ -22,6 +22,9 @@ public class Player : Role
 
     internal Game? Game { get; set; }
 
+    public IReadOnlyList<Transaction> History =>
+        Game?.Ledger.Where(t => t.From == this || t.To == this).ToList() ?? [];
+
     public void TransferMoney(Player to, int amount)
     {
         if (Game != to.Game)
@@ -37,6 +40,7 @@ public class Player : Role
 
         Adjust(-amount);
         to.Adjust(amount);
+        Game.Ledger.Add(new Transaction(this, to, amount));
     }
 
     internal void Adjust(int amount)

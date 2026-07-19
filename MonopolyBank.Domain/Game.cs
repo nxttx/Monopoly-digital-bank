@@ -8,12 +8,18 @@ public class Game
 
     internal bool Started { get; private set; }
 
+    internal List<Transaction> Ledger { get; } = [];
+
     public void Start()
     {
         if (_users.Count(u => u.IsBanker) < 1 || _users.Count(u => u.IsPlayer) < 2)
             throw new AmountOfPlayersException();
 
         Started = true;
+
+        var banker = _users.First(u => u.IsBanker);
+        foreach (var user in _users)
+            Ledger.Add(new Transaction(banker.Banker, user.Player, banker.Banker.StartAmount));
     }
 
     public void AddUser(User user)
@@ -29,7 +35,12 @@ public class Game
         user.Banker.Game = this;
 
         var banker = _users.FirstOrDefault(u => u.IsBanker);
-        if (banker is not null)
-            user.Player.Adjust(banker.Banker.StartAmount - user.Player.Money);
+        if (banker is null)
+            return;
+
+        user.Player.Adjust(banker.Banker.StartAmount - user.Player.Money);
+
+        if (Started)
+            Ledger.Add(new Transaction(banker.Banker, user.Player, banker.Banker.StartAmount));
     }
 }

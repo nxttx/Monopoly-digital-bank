@@ -532,7 +532,57 @@ public class Tests
         banker.Banker.Players.ShouldContain(p => p == thirdUser.Player);
         
     }
-    
+
+    [Fact]
+    public void APlayerShouldSeeWhereTheirMoneyWent()
+    {
+        var user = new User("Jan");
+        var anotherUser = new User("Bob");
+        var banker = new User("Mick", UserType.Banker);
+        var game = new Game();
+        game.AddUser(user);
+        game.AddUser(anotherUser);
+        game.AddUser(banker);
+
+        game.Start();
+
+        user.Player.History.ShouldContain(h => h.Amount == 1500 && h.From == banker.Banker && h.To == user.Player);
+        user.Player.History[0].Amount.ShouldBe(1500);
+        user.Player.History[0].From.ShouldBe(banker.Banker);
+        user.Player.History[0].To.ShouldBe(user.Player);
+
+        user.Player.TransferMoney(anotherUser.Player, 100);
+        user.Player.History.ShouldContain(h => h.Amount == 100 && h.From == user.Player && h.To == anotherUser.Player);
+        user.Player.History[1].Amount.ShouldBe(100);
+        user.Player.History[1].From.ShouldBe(user.Player);
+        user.Player.History[1].To.ShouldBe(anotherUser.Player);
+
+        banker.Banker.TransferMoney(user.Player, 200);
+        user.Player.History.ShouldContain(h => h.Amount == 200 && h.From == banker.Banker && h.To == user.Player);
+        user.Player.History[2].Amount.ShouldBe(200);
+        user.Player.History[2].From.ShouldBe(banker.Banker);
+        user.Player.History[2].To.ShouldBe(user.Player);
+
+    }
+
+    [Fact]
+    public void LateJoinersShouldAlsoHaveACorrectHistory()
+    {
+        var user = new User("Jan");
+        var anotherUser = new User("Bob");
+        var banker = new User("Mick", UserType.Banker);
+        var game = new Game();
+        game.AddUser(user);
+        game.AddUser(anotherUser);
+        game.AddUser(banker);
+        game.Start();
+        var thirdUser = new User("Anne");
+        game.AddUser(thirdUser);
+        thirdUser.Player.History.ShouldContain(h => h.Amount == 1500 && h.From == banker.Banker && h.To == thirdUser.Player);
+        thirdUser.Player.History[0].Amount.ShouldBe(1500);
+        thirdUser.Player.History[0].From.ShouldBe(banker.Banker);
+        thirdUser.Player.History[0].To.ShouldBe(thirdUser.Player);
+    }
 }
 
 internal static class ShouldlyExtensions
