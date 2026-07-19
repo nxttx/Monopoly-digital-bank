@@ -16,7 +16,7 @@ A Monopoly banking domain, built with **DDD** and strict **TDD**. The user has R
 
 ## Project structure
 
-- `MonopolyBank.Domain/` — class library, the domain model (namespace `MonopolyBank.Domain`). Production code goes here.
+- `MonopolyBank.Domain/` — class library, the domain model. Production code goes here. Core types at the root (`Game`, `User`, `UserType`, `Transaction`, `BankCard`), roles in `Roles/`, exceptions in `Exceptions/`. Everything stays in the single namespace `MonopolyBank.Domain` regardless of folder (deliberate — don't "fix" to folder-matching namespaces).
 - `MonopolyBank.Tests/` — xunit.v3 test project (namespace `MonopolyBank.Tests`), references Domain. User territory.
 - `MonopolyBank.slnx` — solution file listing both projects.
 
