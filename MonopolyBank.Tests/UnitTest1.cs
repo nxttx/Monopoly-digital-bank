@@ -9,7 +9,7 @@ public class Tests
     [Fact]
     public void AGameShouldHaveUsers()
     {
-        var user = new User();
+        var user = new User("Jan");
         user.ShouldNotBeNull();
 
         var game = new Game();
@@ -23,7 +23,7 @@ public class Tests
     [Fact]
     public void AUserShouldHaveMoney()
     {
-        var user = new User();
+        var user = new User("Jan");
         user.ShouldNotBeNull();
 
         user.Player.Money.ShouldBe(1000);
@@ -32,9 +32,9 @@ public class Tests
     [Fact]
     public void AUserCanBeAPlayerOrABankerOrBoth()
     {
-        User banker = new User(UserType.Banker);
-        User player = new User();
-        User both = new User(UserType.Both);
+        User banker = new User("Mick", UserType.Banker);
+        User player = new User("Paul");
+        User both = new User("Bella", UserType.Both);
 
         banker.ShouldNotBeNull();
         player.ShouldNotBeNull();
@@ -53,8 +53,8 @@ public class Tests
     [Fact]
     public void AnUserCanTransferMoneyToAnotherUser()
     {
-        var user1 = new User();
-        var user2 = new User();
+        var user1 = new User("Jan");
+        var user2 = new User("Bob");
 
         user1.Player.Money.ShouldBe(1000);
         user2.Player.Money.ShouldBe(1000);
@@ -69,8 +69,8 @@ public class Tests
     [Fact]
     public void ABankerCanGiveMoneyToAnotherUser()
     {
-        var banker = new User(UserType.Banker);
-        var user = new User();
+        var banker = new User("Mick", UserType.Banker);
+        var user = new User("Jan");
 
         user.Player.Money.ShouldBe(1000);
 
@@ -82,8 +82,8 @@ public class Tests
     [Fact]
     public void AUserWithRoleBothCanGiveMoneyAsABankerAndTransferMoneyAsAPlayer()
     {
-        var user = new User(UserType.Both);
-        var anotherUser = new User();
+        var user = new User("Bella", UserType.Both);
+        var anotherUser = new User("Bob");
 
         user.IsBanker.ShouldBeTrue();
         user.IsPlayer.ShouldBeTrue();
@@ -100,8 +100,8 @@ public class Tests
     [Fact]
     public void AUserWithOutRoleBankerCannotGiveMoney()
     {
-        var user = new User();
-        var anotherUser = new User();
+        var user = new User("Jan");
+        var anotherUser = new User("Bob");
 
         user.IsBanker.ShouldBeFalse();
         user.IsPlayer.ShouldBeTrue();
@@ -114,8 +114,8 @@ public class Tests
     [Fact]
     public void ABankerWithoutPlayerRoleCannotGiveMoney()
     {
-        var banker = new User(UserType.Banker);
-        var anotherUser = new User();
+        var banker = new User("Mick", UserType.Banker);
+        var anotherUser = new User("Bob");
 
         banker.IsBanker.ShouldBeTrue();
         banker.IsPlayer.ShouldBeFalse();
@@ -129,10 +129,10 @@ public class Tests
     public void ThereShouldAlwaysOnlyBeOneBanker()
     {
         var game = new Game();
-        var banker1 = new User(UserType.Banker);
-        var banker2 = new User(UserType.Banker);
-        var player = new User();
-        var player2 = new User();
+        var banker1 = new User("Mick", UserType.Banker);
+        var banker2 = new User("Ben", UserType.Banker);
+        var player = new User("Paul");
+        var player2 = new User("Anne");
 
 
         banker1.IsBanker.ShouldBeTrue();
@@ -153,8 +153,8 @@ public class Tests
     [Fact]
     public void APlayerCannotStealFromAnotherPlayer()
     {
-        var user1 = new User();
-        var user2 = new User();
+        var user1 = new User("Jan");
+        var user2 = new User("Bob");
 
         user1.Player.Money.ShouldBe(1000);
         user2.Player.Money.ShouldBe(1000);
@@ -168,8 +168,8 @@ public class Tests
     [Fact]
     public void ABankerCanTakeMoneyFromAnotherPlayer()
     {
-        var banker = new User(UserType.Banker);
-        var user = new User();
+        var banker = new User("Mick", UserType.Banker);
+        var user = new User("Jan");
 
         user.Player.Money.ShouldBe(1000);
         banker.Banker.TransferMoney(user.Player, -100);
@@ -179,8 +179,8 @@ public class Tests
     [Fact]
     public void APlayerCannotPayMoreMoneyThanTheyHave()
     {
-        var user = new User();
-        var anotherUser = new User();
+        var user = new User("Jan");
+        var anotherUser = new User("Bob");
 
         user.Player.Money.ShouldBe(1000);
         anotherUser.Player.Money.ShouldBe(1000);
@@ -194,8 +194,8 @@ public class Tests
     [Fact]
     public void ABankerCannotTakeMoreMoneyThanTheyPlayerHas()
     {
-        var banker = new User(UserType.Banker);
-        var user = new User();
+        var banker = new User("Mick", UserType.Banker);
+        var user = new User("Jan");
 
         user.Player.Money.ShouldBe(1000);
 
@@ -207,8 +207,8 @@ public class Tests
     [Fact]
     public void AnUserCannotTransferMoneyToAnotherUserFromAnotherGame()
     {
-        var user = new User();
-        var anotherUser = new User();
+        var user = new User("Jan");
+        var anotherUser = new User("Bob");
 
         var game1 = new Game();
         var game2 = new Game();
@@ -221,8 +221,8 @@ public class Tests
     [Fact]
     public void AUserCannotTransferMoneyToAnotherUserFromAnotherGameWithBankerRole()
     {
-        var user = new User(UserType.Banker);
-        var anotherUser = new User();
+        var user = new User("Mick", UserType.Banker);
+        var anotherUser = new User("Bob");
 
         var game1 = new Game();
         var game2 = new Game();
@@ -235,7 +235,7 @@ public class Tests
     [Fact]
     public void AUserCannotBeAddedToMoreThanOneGame()
     {
-        var user = new User();
+        var user = new User("Jan");
 
         var game1 = new Game();
         game1.AddUser(user);
@@ -253,9 +253,9 @@ public class Tests
     [Fact]
     public void APlayerShouldHaveANameAndFakeBankingInfo()
     {
-        var player = new Player("Dhr. D. Dummy");
+        var player = new Player("Janne");
         player.Name.ShouldNotBeNullOrEmpty();
-        player.Name.ShouldBe("Dhr. D. Dummy");
+        player.Name.ShouldBe("Janne");
         player.CardNumber.ShouldNotBeNullOrEmpty();
         player.CardNumber.ShouldNotBe(Guid.Empty.ToString());
         
@@ -270,12 +270,11 @@ public class Tests
         Should.Throw<ArgumentException>(() => new Player(""))
             .Message.ShouldBe("Name cannot be empty.");
         
-        var userName = "Dhr. D. Dummy";
+        var userName = "Janne";
         var user = new User(userName);
         user.Player.Name.ShouldNotBeNullOrEmpty();
         user.Player.Name.ShouldBe(userName);
      
-        var user2 = new User();
         Should.Throw<ArgumentException>(() => new User(""))
             .Message.ShouldBe("Name cannot be empty.");
         
