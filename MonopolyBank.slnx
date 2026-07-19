@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="MonopolyBank.Domain/MonopolyBank.Domain.csproj" />
+  <Project Path="MonopolyBank.Tests/MonopolyBank.Tests.csproj" />
+</Solution>

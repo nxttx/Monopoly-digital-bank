@@ -1,0 +1,14 @@
+# Build results
+bin/
+obj/
+/packages/
+TestResults/
+
+# Rider / ReSharper
+# Note: .idea/.idea.MonopolyBank/.idea/ has its own Rider-generated .gitignore
+# that excludes user-specific files (workspace.xml, shelf/, etc.); the
+# shareable settings there are meant to be committed.
+/_ReSharper.Caches/
+riderModule.iml
+*.DotSettings.user
+*.user
