@@ -107,7 +107,8 @@ public class Tests
         user.IsPlayer.ShouldBeTrue();
         anotherUser.IsPlayer.ShouldBeTrue();
 
-        Should.Throw<InvalidOperationException>(() => user.Banker.TransferMoney(anotherUser.Player, 100));
+        Should.Throw<MissingRoleException>(() => user.Banker.TransferMoney(anotherUser.Player, 100))
+            .Message.ShouldBe("User does not have the banker role.");
     }
     
     [Fact]
@@ -120,7 +121,8 @@ public class Tests
         banker.IsPlayer.ShouldBeFalse();
         anotherUser.IsPlayer.ShouldBeTrue();
 
-        Should.Throw<InvalidOperationException>(() => banker.Player.TransferMoney(anotherUser.Player, 100));
+        Should.Throw<MissingRoleException>(() => banker.Player.TransferMoney(anotherUser.Player, 100))
+            .Message.ShouldBe("User does not have the player role.");
     }
 
     [Fact]
@@ -141,7 +143,8 @@ public class Tests
         
         game.AddUser(player);
         game.AddUser(banker1);
-        Should.Throw<InvalidOperationException>(() => game.AddUser(banker2), "There can only be one banker per game.");
+        Should.Throw<DuplicateBankerException>(() => game.AddUser(banker2))
+            .Message.ShouldBe("There can only be one banker per game.");
         game.AddUser(player2);
         
         game.Users.Count.ShouldBe(3);
@@ -156,7 +159,8 @@ public class Tests
         user1.Player.Money.ShouldBe(1000);
         user2.Player.Money.ShouldBe(1000);
         
-        Should.Throw<InvalidOperationException>(() => user1.Player.TransferMoney(user2.Player, -100));
+        Should.Throw<NegativeTransferException>(() => user1.Player.TransferMoney(user2.Player, -100))
+            .Message.ShouldBe("A player cannot transfer a negative amount.");
         user1.Player.Money.ShouldBe(1000);
         user2.Player.Money.ShouldBe(1000);
     }
@@ -181,7 +185,8 @@ public class Tests
         user.Player.Money.ShouldBe(1000);
         anotherUser.Player.Money.ShouldBe(1000);
         
-        Should.Throw<InvalidOperationException>(() => user.Player.TransferMoney(anotherUser.Player, 1100));
+        Should.Throw<InsufficientBalanceException>(() => user.Player.TransferMoney(anotherUser.Player, 1100))
+            .Message.ShouldBe("A player's balance cannot go negative.");
         user.Player.Money.ShouldBe(1000);
         anotherUser.Player.Money.ShouldBe(1000);
     }
@@ -194,7 +199,8 @@ public class Tests
 
         user.Player.Money.ShouldBe(1000);
        
-        Should.Throw<InvalidOperationException>(() =>  banker.Banker.TransferMoney(user.Player, -1100));
+        Should.Throw<InsufficientBalanceException>(() => banker.Banker.TransferMoney(user.Player, -1100))
+            .Message.ShouldBe("A player's balance cannot go negative.");
         user.Player.Money.ShouldBe(1000);
     }
 }

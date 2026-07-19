@@ -7,10 +7,10 @@ public class Player(bool hasRole)
     public void TransferMoney(Player to, int amount)
     {
         if (!hasRole)
-            throw new InvalidOperationException("User does not have the player role.");
+            throw new MissingRoleException("player");
 
         if (amount < 0)
-            throw new InvalidOperationException("A player cannot transfer a negative amount.");
+            throw new NegativeTransferException();
 
         Adjust(-amount);
         to.Adjust(amount);
@@ -19,7 +19,7 @@ public class Player(bool hasRole)
     internal void Adjust(int amount)
     {
         if (Money + amount < 0)
-            throw new InvalidOperationException("A player's balance cannot go negative.");
+            throw new InsufficientBalanceException();
 
         Money += amount;
     }

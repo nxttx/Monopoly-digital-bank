@@ -12,6 +12,7 @@ A Monopoly banking domain, built with **DDD** and strict **TDD**. The user has R
 6. **When the user says they'll fix a test, wait.** Don't implement against a test that's known to be in flux — let the user finish their fix first, then implement against the final red state.
 7. **Git:** Claude may commit on its own judgment (a green, coherent state is a good moment), must inform the user each time it does, and must NEVER commit on `master`/`main` — always work on a feature branch.
 8. **If Claude changed any test file, ask before committing** so the user can review the test changes first. Autonomous commits are only allowed when the diff touches no test code.
+9. **Test changes and implementation are separate steps.** When asked to change tests, change ONLY the tests and stop — the user wants to see the red state first. Implement only when explicitly told to.
 
 ## Project structure
 
@@ -28,6 +29,7 @@ A Monopoly banking domain, built with **DDD** and strict **TDD**. The user has R
 - Role guards are sender-side: transferring without the matching role throws `InvalidOperationException` (receiving is not guarded).
 - Negative amounts: players cannot transfer them (no stealing); the Banker CAN — a negative bank transfer is how the bank collects taxes/fees.
 - Invariant: a player's balance can never go negative — players can't overpay, and the bank can't collect more than the player has (both throw, balances untouched).
+- Rule violations throw domain-specific exceptions deriving from `InvalidOperationException`: `MissingRoleException(role)`, `NegativeTransferException`, `InsufficientBalanceException`, `DuplicateBankerException`. Tests assert both the exception type and its message.
 - `Game` was removed when its test was dropped — recreate it only when a test demands it.
 
 ## Tech notes
