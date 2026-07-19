@@ -9,17 +9,9 @@ A Monopoly banking domain, built as a pairing experiment: the human writes the t
 | `MonopolyBank.Domain` | The domain model. Core types at the root, roles in `Roles/`, exceptions in `Exceptions/`. |
 | `MonopolyBank.Tests` | xunit.v3 + Shouldly test suite. The tests are the spec — production code exists only because a test demanded it. |
 
-## The domain in one minute
+## The experiment (round two)
 
-A `User` is the person at the table; the game itself speaks in **roles**: `user.Player` (owns money, a name, and a fake `BankCard`) and `user.Banker` (the bank). A `Game` holds the users and enforces the table rules:
-
-- One banker per game; a game needs one banker and two players to `Start()`.
-- No money moves before the game starts, and never between different games.
-- A player's balance can never go negative — no overdrafts, no negative transfers, and the bank can't collect more than a player has. The bank's own money is unlimited.
-- Every movement (including starting money) is a `Transaction` in the game's ledger. `player.History` shows a player's own entries; the banker also sees `GlobalHistory` and all `Players`.
-- The banker configures the game before it starts: `SetStartAmount` (default 1500) and `SetCurrency` (default Monopolonian).
-
-Rule violations throw domain-specific exceptions (`InsufficientBalanceException`, `DuplicateBankerException`, …).
+This branch is a clean-room rebuild: the domain implementation was deleted, and a fresh AI session regenerates it using only the test suite as the spec. The goal is to compare the independent design against the original (see PR #1) — how much of the architecture do the tests actually force?
 
 ## Running the tests
 
