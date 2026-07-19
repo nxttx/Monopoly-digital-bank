@@ -11,6 +11,7 @@ A Monopoly banking domain, built with **DDD** and strict **TDD**. The user has R
 5. **Claude maintains this file.** When a new rule is agreed or important project information is shared, update CLAUDE.md in the same turn without being asked.
 6. **When the user says they'll fix a test, wait.** Don't implement against a test that's known to be in flux — let the user finish their fix first, then implement against the final red state.
 7. **Git:** Claude may commit on its own judgment (a green, coherent state is a good moment), must inform the user each time it does, and must NEVER commit on `master`/`main` — always work on a feature branch.
+8. **If Claude changed any test file, ask before committing** so the user can review the test changes first. Autonomous commits are only allowed when the diff touches no test code.
 
 ## Project structure
 

@@ -1,12 +1,20 @@
 namespace MonopolyBank.Domain;
 
-public class User(UserType type = UserType.Player)
+public class User
 {
-    public Player Player { get; } = new(type is UserType.Player or UserType.Both);
+    public User(UserType type = UserType.Player)
+    {
+        IsPlayer = type is UserType.Player or UserType.Both;
+        IsBanker = type is UserType.Banker or UserType.Both;
+        Player = new Player(IsPlayer);
+        Banker = new Banker(IsBanker);
+    }
 
-    public Banker Banker { get; } = new(type is UserType.Banker or UserType.Both);
+    public Player Player { get; }
 
-    public bool IsPlayer => type is UserType.Player or UserType.Both;
+    public Banker Banker { get; }
 
-    public bool IsBanker => type is UserType.Banker or UserType.Both;
+    public bool IsPlayer { get; }
+
+    public bool IsBanker { get; }
 }
