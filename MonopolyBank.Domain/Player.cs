@@ -27,6 +27,9 @@ public class Player : Role
         if (Game != to.Game)
             throw new CrossGameAccessException();
 
+        if (Game is not { Started: true })
+            throw new GameNotStartedException();
+
         EnsureHasRole();
 
         if (amount < 0)

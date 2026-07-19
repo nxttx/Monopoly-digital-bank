@@ -29,6 +29,8 @@ A Monopoly banking domain, built with **DDD** and strict **TDD**. The user has R
 - Money lives on `Player`. Transfers target a `Player`, never a `User` (`Banker.TransferMoney(Player, int)`, `Player.TransferMoney(Player, int)`) — this keeps illegal states (paying a banker-only user) unrepresentable.
 - The `Banker` has unlimited money: giving money doesn't decrease anything.
 - Role guards are sender-side: transferring without the matching role throws `InvalidOperationException` (receiving is not guarded).
+- No money moves before `game.Start()` (players AND banker): `GameNotStartedException`, covering both "no game" and "game not started". `Start()` requires ≥1 banker and ≥2 players (`AmountOfPlayersException`).
+- Guard order in `Player.TransferMoney`: cross-game → game-started → role → negative amount → balance. Both roles carry an internal `Game?` link set by `Game.AddUser`.
 - Negative amounts: players cannot transfer them (no stealing); the Banker CAN — a negative bank transfer is how the bank collects taxes/fees.
 - Invariant: a player's balance can never go negative — players can't overpay, and the bank can't collect more than the player has (both throw, balances untouched).
 - Rule violations throw domain-specific exceptions deriving from `InvalidOperationException`: `MissingRoleException(role)`, `NegativeTransferException`, `InsufficientBalanceException`, `DuplicateBankerException`. Tests assert both the exception type and its message.

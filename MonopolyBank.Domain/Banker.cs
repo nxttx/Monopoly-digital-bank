@@ -6,8 +6,13 @@ public class Banker : Role
     {
     }
 
+    internal Game? Game { get; set; }
+
     public void TransferMoney(Player to, int amount)
     {
+        if (Game is not { Started: true })
+            throw new GameNotStartedException();
+
         EnsureHasRole();
 
         to.Adjust(amount);

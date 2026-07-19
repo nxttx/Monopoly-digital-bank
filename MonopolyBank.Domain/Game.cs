@@ -6,10 +6,14 @@ public class Game
 
     public IReadOnlyCollection<User> Users => _users;
 
+    internal bool Started { get; private set; }
+
     public void Start()
     {
         if (_users.Count(u => u.IsBanker) < 1 || _users.Count(u => u.IsPlayer) < 2)
             throw new AmountOfPlayersException();
+
+        Started = true;
     }
 
     public void AddUser(User user)
@@ -22,5 +26,6 @@ public class Game
 
         _users.Add(user);
         user.Player.Game = this;
+        user.Banker.Game = this;
     }
 }

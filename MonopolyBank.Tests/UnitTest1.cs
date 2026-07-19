@@ -55,6 +55,13 @@ public class Tests
     {
         var user1 = new User("Jan");
         var user2 = new User("Bob");
+        var banker = new User("Mick", UserType.Banker);
+
+        var game = new Game();
+        game.AddUser(user1);
+        game.AddUser(user2);
+        game.AddUser(banker);
+        game.Start();
 
         user1.Player.Money.ShouldBe(1000);
         user2.Player.Money.ShouldBe(1000);
@@ -71,6 +78,13 @@ public class Tests
     {
         var banker = new User("Mick", UserType.Banker);
         var user = new User("Jan");
+        var anotherUser = new User("Anne");
+
+        var game = new Game();
+        game.AddUser(banker);
+        game.AddUser(user);
+        game.AddUser(anotherUser);
+        game.Start();
 
         user.Player.Money.ShouldBe(1000);
 
@@ -84,6 +98,11 @@ public class Tests
     {
         var user = new User("Bella", UserType.Both);
         var anotherUser = new User("Bob");
+
+        var game = new Game();
+        game.AddUser(user);
+        game.AddUser(anotherUser);
+        game.Start();
 
         user.IsBanker.ShouldBeTrue();
         user.IsPlayer.ShouldBeTrue();
@@ -102,6 +121,13 @@ public class Tests
     {
         var user = new User("Jan");
         var anotherUser = new User("Bob");
+        var banker = new User("Mick", UserType.Banker);
+
+        var game = new Game();
+        game.AddUser(user);
+        game.AddUser(anotherUser);
+        game.AddUser(banker);
+        game.Start();
 
         user.IsBanker.ShouldBeFalse();
         user.IsPlayer.ShouldBeTrue();
@@ -116,6 +142,13 @@ public class Tests
     {
         var banker = new User("Mick", UserType.Banker);
         var anotherUser = new User("Bob");
+        var thirdUser = new User("Anne");
+
+        var game = new Game();
+        game.AddUser(banker);
+        game.AddUser(anotherUser);
+        game.AddUser(thirdUser);
+        game.Start();
 
         banker.IsBanker.ShouldBeTrue();
         banker.IsPlayer.ShouldBeFalse();
@@ -155,6 +188,13 @@ public class Tests
     {
         var user1 = new User("Jan");
         var user2 = new User("Bob");
+        var banker = new User("Mick", UserType.Banker);
+
+        var game = new Game();
+        game.AddUser(user1);
+        game.AddUser(user2);
+        game.AddUser(banker);
+        game.Start();
 
         user1.Player.Money.ShouldBe(1000);
         user2.Player.Money.ShouldBe(1000);
@@ -170,6 +210,13 @@ public class Tests
     {
         var banker = new User("Mick", UserType.Banker);
         var user = new User("Jan");
+        var anotherUser = new User("Anne");
+
+        var game = new Game();
+        game.AddUser(banker);
+        game.AddUser(user);
+        game.AddUser(anotherUser);
+        game.Start();
 
         user.Player.Money.ShouldBe(1000);
         banker.Banker.TransferMoney(user.Player, -100);
@@ -181,6 +228,13 @@ public class Tests
     {
         var user = new User("Jan");
         var anotherUser = new User("Bob");
+        var banker = new User("Mick", UserType.Banker);
+
+        var game = new Game();
+        game.AddUser(user);
+        game.AddUser(anotherUser);
+        game.AddUser(banker);
+        game.Start();
 
         user.Player.Money.ShouldBe(1000);
         anotherUser.Player.Money.ShouldBe(1000);
@@ -196,6 +250,13 @@ public class Tests
     {
         var banker = new User("Mick", UserType.Banker);
         var user = new User("Jan");
+        var anotherUser = new User("Anne");
+
+        var game = new Game();
+        game.AddUser(banker);
+        game.AddUser(user);
+        game.AddUser(anotherUser);
+        game.Start();
 
         user.Player.Money.ShouldBe(1000);
 
@@ -299,6 +360,55 @@ public class Tests
         game.AddUser(new User("Mick", UserType.Banker));
         game.Users.Count.ShouldBe(3);
         game.Start();
+    }
+
+    [Fact]
+    public void APlayerCannotTransferMoneyBeforeTheGameHasStarted()
+    {
+        var user1 = new User("Jan");
+        var user2 = new User("Bob");
+        var banker = new User("Mick", UserType.Banker);
+
+        Should.Throw<GameNotStartedException>(() => user1.Player.TransferMoney(user2.Player, 100))
+            .Message.ShouldBe("Cannot transfer money before the game has started.");
+
+        var game = new Game();
+        game.AddUser(user1);
+        game.AddUser(user2);
+        game.AddUser(banker);
+
+        Should.Throw<GameNotStartedException>(() => user1.Player.TransferMoney(user2.Player, 100))
+            .Message.ShouldBe("Cannot transfer money before the game has started.");
+
+        game.Start();
+
+        user1.Player.TransferMoney(user2.Player, 100);
+        user1.Player.Money.ShouldBe(900);
+        user2.Player.Money.ShouldBe(1100);
+    }
+
+    [Fact]
+    public void ABankerCannotTransferMoneyBeforeTheGameHasStarted()
+    {
+        var user1 = new User("Jan");
+        var user2 = new User("Bob");
+        var banker = new User("Mick", UserType.Banker);
+
+        Should.Throw<GameNotStartedException>(() => banker.Banker.TransferMoney(user1.Player, 100))
+            .Message.ShouldBe("Cannot transfer money before the game has started.");
+
+        var game = new Game();
+        game.AddUser(user1);
+        game.AddUser(user2);
+        game.AddUser(banker);
+
+        Should.Throw<GameNotStartedException>(() => banker.Banker.TransferMoney(user1.Player, 100))
+            .Message.ShouldBe("Cannot transfer money before the game has started.");
+
+        game.Start();
+
+        banker.Banker.TransferMoney(user1.Player, 100);
+        user1.Player.Money.ShouldBe(1100);
     }
 }
 
