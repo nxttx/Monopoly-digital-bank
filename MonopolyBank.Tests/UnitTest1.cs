@@ -11,10 +11,10 @@ public class Tests
     {
         var user = new User();
         user.ShouldNotBeNull();
-        
+
         var game = new Game();
         game.ShouldNotBeNull();
-        
+
         game.AddUser(user);
         game.Users.Count.ShouldBe(1);
         game.Users.ShouldContain(user);
@@ -110,7 +110,7 @@ public class Tests
         Should.Throw<MissingRoleException>(() => user.Banker.TransferMoney(anotherUser.Player, 100))
             .Message.ShouldBe("User does not have the banker role.");
     }
-    
+
     [Fact]
     public void ABankerWithoutPlayerRoleCannotGiveMoney()
     {
@@ -133,64 +133,64 @@ public class Tests
         var banker2 = new User(UserType.Banker);
         var player = new User();
         var player2 = new User();
-        
+
 
         banker1.IsBanker.ShouldBeTrue();
         banker2.IsBanker.ShouldBeTrue();
         player.IsPlayer.ShouldBeTrue();
         player.IsBanker.ShouldBeFalse();
         player2.IsPlayer.ShouldBeTrue();
-        
+
         game.AddUser(player);
         game.AddUser(banker1);
         Should.Throw<DuplicateBankerException>(() => game.AddUser(banker2))
             .Message.ShouldBe("There can only be one banker per game.");
         game.AddUser(player2);
-        
+
         game.Users.Count.ShouldBe(3);
     }
-    
+
     [Fact]
     public void APlayerCannotStealFromAnotherPlayer()
     {
         var user1 = new User();
         var user2 = new User();
-        
+
         user1.Player.Money.ShouldBe(1000);
         user2.Player.Money.ShouldBe(1000);
-        
+
         Should.Throw<NegativeTransferException>(() => user1.Player.TransferMoney(user2.Player, -100))
             .Message.ShouldBe("A player cannot transfer a negative amount.");
         user1.Player.Money.ShouldBe(1000);
         user2.Player.Money.ShouldBe(1000);
     }
-    
+
     [Fact]
     public void ABankerCanTakeMoneyFromAnotherPlayer()
     {
         var banker = new User(UserType.Banker);
         var user = new User();
-        
+
         user.Player.Money.ShouldBe(1000);
         banker.Banker.TransferMoney(user.Player, -100);
         user.Player.Money.ShouldBe(900);
     }
-    
+
     [Fact]
     public void APlayerCannotPayMoreMoneyThanTheyHave()
     {
         var user = new User();
         var anotherUser = new User();
-        
+
         user.Player.Money.ShouldBe(1000);
         anotherUser.Player.Money.ShouldBe(1000);
-        
+
         Should.Throw<InsufficientBalanceException>(() => user.Player.TransferMoney(anotherUser.Player, 1100))
             .Message.ShouldBe("A player's balance cannot go negative.");
         user.Player.Money.ShouldBe(1000);
         anotherUser.Player.Money.ShouldBe(1000);
     }
-    
+
     [Fact]
     public void ABankerCannotTakeMoreMoneyThanTheyPlayerHas()
     {
@@ -198,7 +198,7 @@ public class Tests
         var user = new User();
 
         user.Player.Money.ShouldBe(1000);
-       
+
         Should.Throw<InsufficientBalanceException>(() => banker.Banker.TransferMoney(user.Player, -1100))
             .Message.ShouldBe("A player's balance cannot go negative.");
         user.Player.Money.ShouldBe(1000);
@@ -216,9 +216,8 @@ public class Tests
         game2.AddUser(anotherUser);
         Should.Throw<CrossGameAccessException>(() => user.Player.TransferMoney(anotherUser.Player, 100))
             .Message.ShouldBe("Cannot transfer money to another user from another game.");
-        
     }
-    
+
     [Fact]
     public void AUserCannotTransferMoneyToAnotherUserFromAnotherGameWithBankerRole()
     {
@@ -232,17 +231,24 @@ public class Tests
         Should.Throw<CrossGameAccessException>(() => user.Player.TransferMoney(anotherUser.Player, 100))
             .Message.ShouldBe("Cannot transfer money to another user from another game.");
     }
-    
+
     [Fact]
-    public void AUserCannotBeAddedToTwoDifferentGames()
+    public void AUserCannotBeAddedToMoreThanOneGame()
     {
-        var user = new User(UserType.Player);
-        var anotherUser = new User();
+        var user = new User();
 
         var game1 = new Game();
-        var game2 = new Game();
         game1.AddUser(user);
-        Should.Throw<InvalidOperationException>(() => game2.AddUser(user))
-            .Message.ShouldBe("A user cannot be added to two different games.");
+        
+        for (int i = 0; i < 10; i++)
+        {
+            var game2 = new Game();
+
+            Should.Throw<UserAlreadyInGameException>(() => game2.AddUser(user))
+                .Message.ShouldBe("A user cannot be added to two different games.");
+        }
     }
+    
+    
+
 }
