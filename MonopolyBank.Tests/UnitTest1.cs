@@ -1,7 +1,6 @@
 ﻿using MonopolyBank.Domain;
 using Shouldly;
 using Xunit;
-using Xunit.Internal;
 
 namespace MonopolyBank.Tests;
 
@@ -301,7 +300,7 @@ public class Tests
 
         var game1 = new Game();
         game1.AddUser(user);
-        
+
         for (int i = 0; i < 10; i++)
         {
             var game2 = new Game();
@@ -310,8 +309,8 @@ public class Tests
                 .Message.ShouldBe("A user cannot be added to two different games.");
         }
     }
-    
-    
+
+
     [Fact]
     public void APlayerShouldHaveANameAndFakeBankingInfo()
     {
@@ -326,21 +325,20 @@ public class Tests
         player.BankCard.Cvv.ShouldNotBeNullOrEmpty();
         player.BankCard.Cvv.Length.ShouldBe(3);
     }
-    
+
     [Fact]
     public void APlayersNameShouldNotBeEmpty()
     {
         Should.Throw<ArgumentException>(() => new Player(""))
             .Message.ShouldBe("Name cannot be empty.");
-        
+
         var userName = "Janne";
         var user = new User(userName);
         user.Player.Name.ShouldNotBeNullOrEmpty();
         user.Player.Name.ShouldBe(userName);
-     
+
         Should.Throw<ArgumentException>(() => new User(""))
             .Message.ShouldBe("Name cannot be empty.");
-        
     }
 
     [Fact]
@@ -352,7 +350,7 @@ public class Tests
         game.Users.Count.ShouldBe(1);
         Should.Throw<AmountOfPlayersException>(() => game.Start())
             .Message.ShouldBe("A game requires at least one banker and two players.");
-        
+
         var user2 = new User("Bob");
         game.AddUser(user2);
         game.Users.Count.ShouldBe(2);
@@ -411,7 +409,7 @@ public class Tests
         banker.Banker.TransferMoney(user1.Player, 100);
         user1.Player.Money.ShouldBe(1600);
     }
-    
+
     [Fact]
     public void TheBankerShouldKnowTheAmountOfMoneyAllPlayersHave()
     {
@@ -429,11 +427,11 @@ public class Tests
         user.Player.TransferMoney(anotherUser.Player, 100);
         banker.Banker.Players.ShouldContain(p => p == user.Player);
         banker.Banker.Players.ShouldContain(p => p == anotherUser.Player);
-        
+
         var bankersUser = banker.Banker.Players.FirstOrDefault(p => p == user.Player);
         bankersUser.ShouldNotBeNull();
         bankersUser.Money.ShouldBe(1400);
-        
+
         var bankersAnotherUser = banker.Banker.Players.FirstOrDefault(p => p == anotherUser.Player);
         bankersAnotherUser.ShouldNotBeNull();
         bankersAnotherUser.Money.ShouldBe(1600);
@@ -454,12 +452,12 @@ public class Tests
 
         banker.Banker.StartAmount.ShouldBe(2000);
         game.Users.ShouldAllBe(u => u.Player.Money == 2000);
-        
+
         game.Start();
-        
+
         banker.Banker.Players.ShouldAllBe(p => p.Money == 2000);
     }
-    
+
     [Fact]
     public void APlayerShouldNotBeAbleToSetTheBeginningAmountOfMoney()
     {
@@ -474,7 +472,7 @@ public class Tests
         Assert.Throws<MissingRoleException>(() => anotherUser.Banker.SetStartAmount(2000))
             .Message.ShouldBe("User does not have the banker role.");
     }
-    
+
     [Fact]
     public void APlayerShouldNotBeAbleToSetTheBeginningAmountOfMoneyWhenTheGameHasStarted()
     {
@@ -490,7 +488,7 @@ public class Tests
         Assert.Throws<GameHasStartedException>(() => banker.Banker.SetStartAmount(2000))
             .Message.ShouldBe("Cannot set the start amount of money when the game has started.");
     }
-    
+
     [Fact]
     public void APlayerThatJoinsTheGameLaterShouldGetTheAdjustedAmountOfStartingMoney()
     {
@@ -501,13 +499,13 @@ public class Tests
         game.AddUser(user);
         game.AddUser(anotherUser);
         game.AddUser(banker);
-        
+
         banker.Banker.SetStartAmount(2000);
         game.Start();
-        
+
         user.Player.Money.ShouldBe(2000);
         anotherUser.Player.Money.ShouldBe(2000);
-        
+
         var thirdUser = new User("Anne");
         game.AddUser(thirdUser);
         thirdUser.Player.Money.ShouldBe(2000);
@@ -523,14 +521,13 @@ public class Tests
         game.AddUser(user);
         game.AddUser(anotherUser);
         game.AddUser(banker);
-        
+
         game.Start();
-        
+
         var thirdUser = new User("Anne");
         game.AddUser(thirdUser);
         game.Users.ShouldContain(p => p == thirdUser);
         banker.Banker.Players.ShouldContain(p => p == thirdUser.Player);
-        
     }
 
     [Fact]
@@ -562,7 +559,6 @@ public class Tests
         user.Player.History[2].Amount.ShouldBe(200);
         user.Player.History[2].From.ShouldBe(banker.Banker);
         user.Player.History[2].To.ShouldBe(user.Player);
-
     }
 
     [Fact]
@@ -578,12 +574,13 @@ public class Tests
         game.Start();
         var thirdUser = new User("Anne");
         game.AddUser(thirdUser);
-        thirdUser.Player.History.ShouldContain(h => h.Amount == 1500 && h.From == banker.Banker && h.To == thirdUser.Player);
+        thirdUser.Player.History.ShouldContain(h =>
+            h.Amount == 1500 && h.From == banker.Banker && h.To == thirdUser.Player);
         thirdUser.Player.History[0].Amount.ShouldBe(1500);
         thirdUser.Player.History[0].From.ShouldBe(banker.Banker);
         thirdUser.Player.History[0].To.ShouldBe(thirdUser.Player);
     }
-    
+
     [Fact]
     public void BankerShouldSeeHisOwnHistoryAndTheHistoryOfThePlayers()
     {
@@ -595,14 +592,48 @@ public class Tests
         game.AddUser(anotherUser);
         game.AddUser(banker);
         game.Start();
-        
+
         user.Player.TransferMoney(anotherUser.Player, 100);
 
-        banker.Banker.GlobalHistory.ShouldContain(h => h.Amount == 100 && h.From == user.Player && h.To == anotherUser.Player);
-        banker.Banker.GlobalHistory.ShouldContain(h => h.Amount == 1500 && h.From == banker.Banker && h.To == user.Player);
-        
+        banker.Banker.GlobalHistory.ShouldContain(h =>
+            h.Amount == 100 && h.From == user.Player && h.To == anotherUser.Player);
+        banker.Banker.GlobalHistory.ShouldContain(h =>
+            h.Amount == 1500 && h.From == banker.Banker && h.To == user.Player);
+
         banker.Banker.History.ShouldContain(h => h.Amount == 1500 && h.From == banker.Banker && h.To == user.Player);
-        banker.Banker.History.ShouldContain(h => h.Amount == 1500 && h.From == banker.Banker && h.To == anotherUser.Player);
+        banker.Banker.History.ShouldContain(h =>
+            h.Amount == 1500 && h.From == banker.Banker && h.To == anotherUser.Player);
+    }
+
+    [Fact]
+    public void TheGameMustKnowWhatTheCurrencyOfTheMoneyIs()
+    {
+        var banker = new User("Mick", UserType.Banker);
+        var game = new Game();
+        game.AddUser(new User("Jan"));
+        game.AddUser(new User("Bob"));
+        game.AddUser(banker);
+
+        banker.Banker.Currency.ShouldBe(Currencies.Monopolonian);
+        game.Start();
+
+        /*
+         * Monopoly Currency Reference
+         * ----------------------------
+         * | Symbol | Currency Name       | Used In                                    |
+         * |--------|---------------------|--------------------------------------------|
+         * | $      | Dollar              | USA, Australia                              |
+         * | £      | Pound               | UK                                          |
+         * | €      | Euro                | France, Belgium, Germany, NL, Spain, Italy  |
+         * | ₣      | Franc               | France, Belgium (pre-Euro)                  |
+         * | DM     | Deutsche Mark       | Germany (pre-Euro)                          |
+         * | ₧      | Peseta              | Spain (pre-Euro)                            |
+         * | ₤      | Lira                | Italy (pre-Euro)                            |
+         * | ƒ      | Gulden / Florijn    | Netherlands (pre-Euro)                      |
+         * | ₹      | Rupee               | India                                       |
+         * | ¥      | Yen                 | Japan                                       |
+         * | M      | Monopolonian        | Monopoly Here and Now: World Edition        |
+         */
     }
 }
 

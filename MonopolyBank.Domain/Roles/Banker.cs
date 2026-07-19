@@ -13,6 +13,8 @@ public class Banker : Role
 
     public int StartAmount { get; private set; } = 1500;
 
+    public Currencies Currency { get; } = Currencies.Monopolonian;
+
     public void SetStartAmount(int amount)
     {
         EnsureHasRole();
