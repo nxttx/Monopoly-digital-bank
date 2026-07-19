@@ -280,6 +280,26 @@ public class Tests
             .Message.ShouldBe("Name cannot be empty.");
         
     }
+
+    [Fact]
+    public void AGameRequiresAtLeastOneBankerAndTwoPlayers()
+    {
+        var user = new User("Janne");
+        var game = new Game();
+        game.AddUser(user);
+        game.Users.Count.ShouldBe(1);
+        Should.Throw<AmountOfPlayersException>(() => game.Start())
+            .Message.ShouldBe("A game requires at least one banker and two players.");
+        
+        var user2 = new User("Bob");
+        game.AddUser(user2);
+        game.Users.Count.ShouldBe(2);
+        Should.Throw<AmountOfPlayersException>(() => game.Start())
+            .Message.ShouldBe("A game requires at least one banker and two players.");
+        game.AddUser(new User("Mick", UserType.Banker));
+        game.Users.Count.ShouldBe(3);
+        game.Start();
+    }
 }
 
 internal static class ShouldlyExtensions
