@@ -9,12 +9,22 @@ A Monopoly banking domain, built with **DDD** and strict **TDD**. The user has R
 3. **Implement the bare minimum** to make the current failing tests pass. Never anticipate features not yet specified by a test.
 4. **Refactor minimally.** Only refactor when a clear pattern or other good reason emerges — not freely.
 5. **Claude maintains this file.** When a new rule is agreed or important project information is shared, update CLAUDE.md in the same turn without being asked.
+6. **When the user says they'll fix a test, wait.** Don't implement against a test that's known to be in flux — let the user finish their fix first, then implement against the final red state.
+7. **Git:** Claude may commit on its own judgment (a green, coherent state is a good moment), must inform the user each time it does, and must NEVER commit on `master`/`main` — always work on a feature branch.
 
 ## Project structure
 
 - `MonopolyBank.Domain/` — class library, the domain model (namespace `MonopolyBank.Domain`). Production code goes here.
 - `MonopolyBank.Tests/` — xunit.v3 test project (namespace `MonopolyBank.Tests`), references Domain. User territory.
 - `MonopolyBank.slnx` — solution file listing both projects.
+
+## Domain decisions
+
+- `User` is an application-level concept (the person at the device); the *game domain* speaks in **Players** and the **Bank** — Monopoly's ubiquitous language never says "user".
+- A `User` composes role objects: `user.Player` and `user.Banker` (role presence flags: `IsPlayer`/`IsBanker` from `UserType`).
+- Money lives on `Player`. Transfers target a `Player`, never a `User` (`Banker.TransferMoney(Player, int)`, `Player.TransferMoney(Player, int)`) — this keeps illegal states (paying a banker-only user) unrepresentable.
+- The `Banker` has unlimited money: giving money doesn't decrease anything.
+- `Game` was removed when its test was dropped — recreate it only when a test demands it.
 
 ## Tech notes
 
