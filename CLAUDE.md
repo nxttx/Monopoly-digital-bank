@@ -9,12 +9,33 @@ A Monopoly banking domain, built with **DDD** and strict **TDD**. The user has R
 3. **Implement the bare minimum** to make the current failing tests pass. Never anticipate features not yet specified by a test.
 4. **Refactor minimally.** Only refactor when a clear pattern or other good reason emerges — not freely.
 5. **Claude maintains this file.** When a new rule is agreed or important project information is shared, update CLAUDE.md in the same turn without being asked.
+6. **When the user says they'll fix a test, wait.** Don't implement against a test that's known to be in flux — let the user finish their fix first, then implement against the final red state.
+7. **Git:** Claude may commit on its own judgment (a green, coherent state is a good moment), must inform the user each time it does, and must NEVER commit on `master`/`main` — always work on a feature branch.
+8. **If Claude changed any test file, ask before committing** so the user can review the test changes first. Autonomous commits are only allowed when the diff touches no test code.
+9. **Test changes and implementation are separate steps.** When asked to change tests, change ONLY the tests and stop — the user wants to see the red state first. Implement only when explicitly told to.
 
 ## Project structure
 
-- `MonopolyBank.Domain/` — class library, the domain model (namespace `MonopolyBank.Domain`). Production code goes here.
+- `MonopolyBank.Domain/` — class library, the domain model. Production code goes here. Core types at the root (`Game`, `User`, `UserType`, `Transaction`, `BankCard`), roles in `Roles/`, exceptions in `Exceptions/`. Everything stays in the single namespace `MonopolyBank.Domain` regardless of folder (deliberate — don't "fix" to folder-matching namespaces).
 - `MonopolyBank.Tests/` — xunit.v3 test project (namespace `MonopolyBank.Tests`), references Domain. User territory.
 - `MonopolyBank.slnx` — solution file listing both projects.
+
+## Domain decisions
+
+- `User` is an application-level concept (the person at the device); the *game domain* speaks in **Players** and the **Bank** — Monopoly's ubiquitous language never says "user".
+- A `User` composes role objects: `user.Player` and `user.Banker` (role presence flags: `IsPlayer`/`IsBanker` from `UserType`).
+- Every user/player has a mandatory non-empty name (`ArgumentException("Name cannot be empty.")`); there is no nameless construction.
+- `Player` and `Banker` derive from abstract `Role`, which owns the has-role guard (`EnsureHasRole()` → `MissingRoleException`). Role objects are constructed only by `User` (internal ctors), except the public `Player(string name)`.
+- Money lives on `Player`. Transfers target a `Player`, never a `User` (`Banker.TransferMoney(Player, int)`, `Player.TransferMoney(Player, int)`) — this keeps illegal states (paying a banker-only user) unrepresentable.
+- The `Banker` has unlimited money: giving money doesn't decrease anything.
+- Role guards are sender-side: transferring without the matching role throws `InvalidOperationException` (receiving is not guarded).
+- No money moves before `game.Start()` (players AND banker): `GameNotStartedException`, covering both "no game" and "game not started". `Start()` requires ≥1 banker and ≥2 players (`AmountOfPlayersException`).
+- Guard order in `Player.TransferMoney`: cross-game → game-started → role → negative amount → balance. Both roles carry an internal `Game?` link set by `Game.AddUser`.
+- Transactions: `Game.Ledger` (internal) is the single source of truth — a `Transaction(Role From, Role To, int Amount)` record per money movement. `Player.History` is a filtered projection (entries where the player is From or To). Starting money is itself a ledger entry from the banker, written at `Start()` (and at `AddUser` for post-start joiners).
+- Negative amounts: players cannot transfer them (no stealing); the Banker CAN — a negative bank transfer is how the bank collects taxes/fees.
+- Invariant: a player's balance can never go negative — players can't overpay, and the bank can't collect more than the player has (both throw, balances untouched).
+- Rule violations throw domain-specific exceptions deriving from `InvalidOperationException`: `MissingRoleException(role)`, `NegativeTransferException`, `InsufficientBalanceException`, `DuplicateBankerException`. Tests assert both the exception type and its message.
+- `Game` was removed when its test was dropped — recreate it only when a test demands it.
 
 ## Tech notes
 
