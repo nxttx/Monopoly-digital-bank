@@ -27,5 +27,9 @@ public class Game
         _users.Add(user);
         user.Player.Game = this;
         user.Banker.Game = this;
+
+        var banker = _users.FirstOrDefault(u => u.IsBanker);
+        if (banker is not null)
+            user.Player.Adjust(banker.Banker.StartAmount - user.Player.Money);
     }
 }

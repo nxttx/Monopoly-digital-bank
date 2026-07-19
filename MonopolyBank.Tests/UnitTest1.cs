@@ -460,6 +460,78 @@ public class Tests
         banker.Banker.Players.ShouldAllBe(p => p.Money == 2000);
     }
     
+    [Fact]
+    public void APlayerShouldNotBeAbleToSetTheBeginningAmountOfMoney()
+    {
+        var user = new User("Jan");
+        var anotherUser = new User("Bob");
+        var banker = new User("Mick", UserType.Banker);
+        var game = new Game();
+        game.AddUser(user);
+        game.AddUser(anotherUser);
+        game.AddUser(banker);
+
+        Assert.Throws<MissingRoleException>(() => anotherUser.Banker.SetStartAmount(2000))
+            .Message.ShouldBe("User does not have the banker role.");
+    }
+    
+    [Fact]
+    public void APlayerShouldNotBeAbleToSetTheBeginningAmountOfMoneyWhenTheGameHasStarted()
+    {
+        var user = new User("Jan");
+        var anotherUser = new User("Bob");
+        var banker = new User("Mick", UserType.Banker);
+        var game = new Game();
+        game.AddUser(user);
+        game.AddUser(anotherUser);
+        game.AddUser(banker);
+        game.Start();
+
+        Assert.Throws<InvalidOperationException>(() => banker.Banker.SetStartAmount(2000));
+    }
+    
+    [Fact]
+    public void APlayerThatJoinsTheGameLaterShouldGetTheAjustedAmountOfStartingMoney()
+    {
+        var user = new User("Jan");
+        var anotherUser = new User("Bob");
+        var banker = new User("Mick", UserType.Banker);
+        var game = new Game();
+        game.AddUser(user);
+        game.AddUser(anotherUser);
+        game.AddUser(banker);
+        
+        banker.Banker.SetStartAmount(2000);
+        game.Start();
+        
+        user.Player.Money.ShouldBe(2000);
+        anotherUser.Player.Money.ShouldBe(2000);
+        
+        var thirdUser = new User("Anne");
+        game.AddUser(thirdUser);
+        thirdUser.Player.Money.ShouldBe(2000);
+    }
+
+    [Fact]
+    public void ALaterJoinedUserShouldAlsoBeSeenByTheBanker()
+    {
+        var user = new User("Jan");
+        var anotherUser = new User("Bob");
+        var banker = new User("Mick", UserType.Banker);
+        var game = new Game();
+        game.AddUser(user);
+        game.AddUser(anotherUser);
+        game.AddUser(banker);
+        
+        game.Start();
+        
+        var thirdUser = new User("Anne");
+        game.AddUser(thirdUser);
+        game.Users.ShouldContain(p => p == thirdUser);
+        banker.Banker.Players.ShouldContain(p => p == thirdUser.Player);
+        
+    }
+    
 }
 
 internal static class ShouldlyExtensions

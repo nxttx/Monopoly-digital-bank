@@ -15,6 +15,11 @@ public class Banker : Role
 
     public void SetStartAmount(int amount)
     {
+        EnsureHasRole();
+
+        if (Game is { Started: true })
+            throw new InvalidOperationException("Cannot change the start amount after the game has started.");
+
         StartAmount = amount;
 
         if (Game is null)
