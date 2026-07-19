@@ -9,6 +9,9 @@ public class Player(bool hasRole)
         if (!hasRole)
             throw new InvalidOperationException("User does not have the player role.");
 
+        if (amount < 0)
+            throw new InvalidOperationException("A player cannot transfer a negative amount.");
+
         Money -= amount;
         to.Money += amount;
     }

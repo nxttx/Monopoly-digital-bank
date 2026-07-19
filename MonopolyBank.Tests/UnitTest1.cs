@@ -147,5 +147,28 @@ public class Tests
         game.Users.Count.ShouldBe(3);
     }
     
+    [Fact]
+    public void APlayerCannotStealFromAnotherPlayer()
+    {
+        var user1 = new User();
+        var user2 = new User();
+        
+        user1.Player.Money.ShouldBe(1000);
+        user2.Player.Money.ShouldBe(1000);
+        
+        Should.Throw<InvalidOperationException>(() => user1.Player.TransferMoney(user2.Player, -100));
+        user1.Player.Money.ShouldBe(1000);
+        user2.Player.Money.ShouldBe(1000);
+    }
     
+    [Fact]
+    public void ABankerCanTakeMoneyFromAnotherPlayer()
+    {
+        var banker = new User(UserType.Banker);
+        var user = new User();
+        
+        user.Player.Money.ShouldBe(1000);
+        banker.Banker.TransferMoney(user.Player, -100);
+        user.Player.Money.ShouldBe(900);
+    }
 }

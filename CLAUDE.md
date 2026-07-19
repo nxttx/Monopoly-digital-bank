@@ -24,6 +24,8 @@ A Monopoly banking domain, built with **DDD** and strict **TDD**. The user has R
 - A `User` composes role objects: `user.Player` and `user.Banker` (role presence flags: `IsPlayer`/`IsBanker` from `UserType`).
 - Money lives on `Player`. Transfers target a `Player`, never a `User` (`Banker.TransferMoney(Player, int)`, `Player.TransferMoney(Player, int)`) — this keeps illegal states (paying a banker-only user) unrepresentable.
 - The `Banker` has unlimited money: giving money doesn't decrease anything.
+- Role guards are sender-side: transferring without the matching role throws `InvalidOperationException` (receiving is not guarded).
+- Negative amounts: players cannot transfer them (no stealing); the Banker CAN — a negative bank transfer is how the bank collects taxes/fees.
 - `Game` was removed when its test was dropped — recreate it only when a test demands it.
 
 ## Tech notes
