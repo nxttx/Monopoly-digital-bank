@@ -10,6 +10,11 @@ public class User
         Banker = new Banker(IsBanker);
     }
 
+    public User(string name, UserType type = UserType.Player) : this(type)
+    {
+        Player = new Player(name, IsPlayer);
+    }
+
     public Player Player { get; }
 
     public Banker Banker { get; }

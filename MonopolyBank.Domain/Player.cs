@@ -2,8 +2,15 @@ namespace MonopolyBank.Domain;
 
 public class Player(bool hasRole)
 {
-    public Player(string name) : this(true)
+    public Player(string name) : this(name, true)
     {
+    }
+
+    internal Player(string name, bool hasRole) : this(hasRole)
+    {
+        if (string.IsNullOrEmpty(name))
+            throw new ArgumentException("Name cannot be empty.");
+
         Name = name;
     }
 

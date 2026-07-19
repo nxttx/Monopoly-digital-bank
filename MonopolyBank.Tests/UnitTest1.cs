@@ -263,6 +263,23 @@ public class Tests
         player.CardCvv.ShouldNotBeNullOrEmpty();
         player.CardCvv.Length.ShouldBe(3);
     }
+    
+    [Fact]
+    public void APlayersNameShouldNotBeEmpty()
+    {
+        Should.Throw<ArgumentException>(() => new Player(""))
+            .Message.ShouldBe("Name cannot be empty.");
+        
+        var userName = "Dhr. D. Dummy";
+        var user = new User(userName);
+        user.Player.Name.ShouldNotBeNullOrEmpty();
+        user.Player.Name.ShouldBe(userName);
+     
+        var user2 = new User();
+        Should.Throw<ArgumentException>(() => new User(""))
+            .Message.ShouldBe("Name cannot be empty.");
+        
+    }
 }
 
 internal static class ShouldlyExtensions
