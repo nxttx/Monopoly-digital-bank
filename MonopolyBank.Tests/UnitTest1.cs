@@ -256,12 +256,13 @@ public class Tests
         var player = new Player("Janne");
         player.Name.ShouldNotBeNullOrEmpty();
         player.Name.ShouldBe("Janne");
-        player.CardNumber.ShouldNotBeNullOrEmpty();
-        player.CardNumber.ShouldNotBe(Guid.Empty.ToString());
-        
-        player.CardExpiry.ShouldBeBetween(DateTime.Now, DateTime.Now.AddYears(2));
-        player.CardCvv.ShouldNotBeNullOrEmpty();
-        player.CardCvv.Length.ShouldBe(3);
+
+        player.BankCard.ShouldNotBeNull();
+        player.BankCard.Number.ShouldNotBeNullOrEmpty();
+        player.BankCard.Number.ShouldNotBe(Guid.Empty.ToString());
+        player.BankCard.Expiry.ShouldBeBetween(DateTime.Now, DateTime.Now.AddYears(2));
+        player.BankCard.Cvv.ShouldNotBeNullOrEmpty();
+        player.BankCard.Cvv.Length.ShouldBe(3);
     }
     
     [Fact]
