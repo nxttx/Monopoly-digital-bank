@@ -12,6 +12,9 @@ public class Player(bool hasRole)
         if (amount < 0)
             throw new InvalidOperationException("A player cannot transfer a negative amount.");
 
+        if (amount > Money)
+            throw new InvalidOperationException("A player cannot pay more money than they have.");
+
         Money -= amount;
         to.Money += amount;
     }

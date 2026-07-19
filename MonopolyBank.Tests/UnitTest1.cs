@@ -171,4 +171,18 @@ public class Tests
         banker.Banker.TransferMoney(user.Player, -100);
         user.Player.Money.ShouldBe(900);
     }
+    
+    [Fact]
+    public void APlayerCannotPayMoreMoneyThanTheyHave()
+    {
+        var user = new User();
+        var anotherUser = new User();
+        
+        user.Player.Money.ShouldBe(1000);
+        anotherUser.Player.Money.ShouldBe(1000);
+        
+        Should.Throw<InvalidOperationException>(() => user.Player.TransferMoney(anotherUser.Player, 1100));
+        user.Player.Money.ShouldBe(1000);
+        anotherUser.Player.Money.ShouldBe(1000);
+    }
 }
