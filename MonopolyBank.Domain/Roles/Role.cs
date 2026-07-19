@@ -12,4 +12,12 @@ public abstract class Role(bool hasRole, string roleName)
         if (!hasRole)
             throw new MissingRoleException(roleName);
     }
+
+    protected Game EnsureGameStarted()
+    {
+        if (Game is not { Started: true })
+            throw new GameNotStartedException();
+
+        return Game;
+    }
 }

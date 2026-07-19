@@ -2,6 +2,8 @@ namespace MonopolyBank.Domain;
 
 public class Game
 {
+    internal const int DefaultStartAmount = 1500;
+
     private readonly List<User> _users = [];
 
     public IReadOnlyCollection<User> Users => _users;
@@ -12,14 +14,15 @@ public class Game
 
     internal List<Transaction> Ledger { get; } = [];
 
+    private User? BankerUser => _users.FirstOrDefault(u => u.IsBanker);
+
     public void Start()
     {
-        if (_users.Count(u => u.IsBanker) < 1 || _users.Count(u => u.IsPlayer) < 2)
+        if (BankerUser is not { } banker || _users.Count(u => u.IsPlayer) < 2)
             throw new AmountOfPlayersException();
 
         Started = true;
 
-        var banker = _users.First(u => u.IsBanker);
         foreach (var user in _users)
             Ledger.Add(new Transaction(banker.Banker, user.Player, banker.Banker.StartAmount));
     }
@@ -29,15 +32,14 @@ public class Game
         if (user.Player.Game is not null)
             throw new UserAlreadyInGameException();
 
-        if (user.IsBanker && _users.Any(u => u.IsBanker))
+        if (user.IsBanker && BankerUser is not null)
             throw new DuplicateBankerException();
 
         _users.Add(user);
         user.Player.Game = this;
         user.Banker.Game = this;
 
-        var banker = _users.FirstOrDefault(u => u.IsBanker);
-        if (banker is null)
+        if (BankerUser is not { } banker)
             return;
 
         user.Player.Adjust(banker.Banker.StartAmount - user.Player.Money);

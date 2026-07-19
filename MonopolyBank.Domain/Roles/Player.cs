@@ -18,16 +18,14 @@ public class Player : Role
 
     public BankCard BankCard { get; } = new();
 
-    public int Money { get; private set; } = 1500;
+    public int Money { get; private set; } = MonopolyBank.Domain.Game.DefaultStartAmount;
 
     public void TransferMoney(Player to, int amount)
     {
         if (Game != to.Game)
             throw new CrossGameAccessException();
 
-        if (Game is not { Started: true })
-            throw new GameNotStartedException();
-
+        var game = EnsureGameStarted();
         EnsureHasRole();
 
         if (amount < 0)
@@ -35,7 +33,7 @@ public class Player : Role
 
         Adjust(-amount);
         to.Adjust(amount);
-        Game.Ledger.Add(new Transaction(this, to, amount));
+        game.Ledger.Add(new Transaction(this, to, amount));
     }
 
     internal void Adjust(int amount)

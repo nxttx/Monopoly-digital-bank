@@ -6,20 +6,12 @@ public class Banker : Role
     {
     }
 
+    public int StartAmount { get; private set; } = MonopolyBank.Domain.Game.DefaultStartAmount;
+
     public IReadOnlyList<Transaction> GlobalHistory => Game?.Ledger ?? [];
 
     public IEnumerable<Player> Players =>
         Game?.Users.Where(u => u.IsPlayer).Select(u => u.Player) ?? [];
-
-    public int StartAmount { get; private set; } = 1500;
-
-    public void SetCurrency(Currencies currency)
-    {
-        EnsureHasRole();
-
-        if (Game is not null)
-            Game.Currency = currency;
-    }
 
     public void SetStartAmount(int amount)
     {
@@ -37,14 +29,20 @@ public class Banker : Role
             user.Player.Adjust(amount - user.Player.Money);
     }
 
+    public void SetCurrency(Currencies currency)
+    {
+        EnsureHasRole();
+
+        if (Game is not null)
+            Game.Currency = currency;
+    }
+
     public void TransferMoney(Player to, int amount)
     {
-        if (Game is not { Started: true })
-            throw new GameNotStartedException();
-
+        var game = EnsureGameStarted();
         EnsureHasRole();
 
         to.Adjust(amount);
-        Game.Ledger.Add(new Transaction(this, to, amount));
+        game.Ledger.Add(new Transaction(this, to, amount));
     }
 }
