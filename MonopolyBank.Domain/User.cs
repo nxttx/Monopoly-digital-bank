@@ -2,17 +2,12 @@ namespace MonopolyBank.Domain;
 
 public class User
 {
-    public User(UserType type = UserType.Player)
+    public User(string name, UserType type = UserType.Player)
     {
         IsPlayer = type is UserType.Player or UserType.Both;
         IsBanker = type is UserType.Banker or UserType.Both;
-        Player = new Player(IsPlayer);
-        Banker = new Banker(IsBanker);
-    }
-
-    public User(string name, UserType type = UserType.Player) : this(type)
-    {
         Player = new Player(name, IsPlayer);
+        Banker = new Banker(IsBanker);
     }
 
     public Player Player { get; }

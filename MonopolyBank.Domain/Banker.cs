@@ -1,11 +1,14 @@
 namespace MonopolyBank.Domain;
 
-public class Banker(bool hasRole)
+public class Banker : Role
 {
+    internal Banker(bool hasRole) : base(hasRole, "banker")
+    {
+    }
+
     public void TransferMoney(Player to, int amount)
     {
-        if (!hasRole)
-            throw new MissingRoleException("banker");
+        EnsureHasRole();
 
         to.Adjust(amount);
     }

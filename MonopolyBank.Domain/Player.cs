@@ -1,12 +1,12 @@
 namespace MonopolyBank.Domain;
 
-public class Player(bool hasRole)
+public class Player : Role
 {
     public Player(string name) : this(name, true)
     {
     }
 
-    internal Player(string name, bool hasRole) : this(hasRole)
+    internal Player(string name, bool hasRole) : base(hasRole, "player")
     {
         if (string.IsNullOrEmpty(name))
             throw new ArgumentException("Name cannot be empty.");
@@ -14,7 +14,7 @@ public class Player(bool hasRole)
         Name = name;
     }
 
-    public string Name { get; } = "";
+    public string Name { get; }
 
     public string CardNumber { get; } = Guid.NewGuid().ToString();
 
@@ -31,8 +31,7 @@ public class Player(bool hasRole)
         if (Game != to.Game)
             throw new CrossGameAccessException();
 
-        if (!hasRole)
-            throw new MissingRoleException("player");
+        EnsureHasRole();
 
         if (amount < 0)
             throw new NegativeTransferException();

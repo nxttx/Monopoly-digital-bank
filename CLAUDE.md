@@ -24,6 +24,8 @@ A Monopoly banking domain, built with **DDD** and strict **TDD**. The user has R
 
 - `User` is an application-level concept (the person at the device); the *game domain* speaks in **Players** and the **Bank** — Monopoly's ubiquitous language never says "user".
 - A `User` composes role objects: `user.Player` and `user.Banker` (role presence flags: `IsPlayer`/`IsBanker` from `UserType`).
+- Every user/player has a mandatory non-empty name (`ArgumentException("Name cannot be empty.")`); there is no nameless construction.
+- `Player` and `Banker` derive from abstract `Role`, which owns the has-role guard (`EnsureHasRole()` → `MissingRoleException`). Role objects are constructed only by `User` (internal ctors), except the public `Player(string name)`.
 - Money lives on `Player`. Transfers target a `Player`, never a `User` (`Banker.TransferMoney(Player, int)`, `Player.TransferMoney(Player, int)`) — this keeps illegal states (paying a banker-only user) unrepresentable.
 - The `Banker` has unlimited money: giving money doesn't decrease anything.
 - Role guards are sender-side: transferring without the matching role throws `InvalidOperationException` (receiving is not guarded).
