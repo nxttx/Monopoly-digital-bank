@@ -6,6 +6,8 @@ public class Game
 
     public IReadOnlyCollection<User> Users => _users;
 
+    public Currencies Currency { get; internal set; } = Currencies.Monopolonian;
+
     internal bool Started { get; private set; }
 
     internal List<Transaction> Ledger { get; } = [];

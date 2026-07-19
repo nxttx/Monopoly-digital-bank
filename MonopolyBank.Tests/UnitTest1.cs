@@ -614,7 +614,8 @@ public class Tests
         game.AddUser(new User("Bob"));
         game.AddUser(banker);
 
-        banker.Banker.Currency.ShouldBe(Currencies.Monopolonian);
+        banker.Banker.SetCurrency(Currencies.Monopolonian);
+        game.Currency.ShouldBe(Currencies.Monopolonian);
         game.Start();
 
         /*
