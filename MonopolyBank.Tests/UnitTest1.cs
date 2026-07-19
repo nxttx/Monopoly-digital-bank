@@ -250,5 +250,26 @@ public class Tests
     }
     
     
+    [Fact]
+    public void APlayerShouldHaveANameAndFakeBankingInfo()
+    {
+        var player = new Player("Dhr. D. Dummy");
+        player.Name.ShouldNotBeNullOrEmpty();
+        player.Name.ShouldBe("Dhr. D. Dummy");
+        player.CardNumber.ShouldNotBeNullOrEmpty();
+        player.CardNumber.ShouldNotBe(Guid.Empty.ToString());
+        
+        player.CardExpiry.ShouldBeBetween(DateTime.Now, DateTime.Now.AddYears(2));
+        player.CardCvv.ShouldNotBeNullOrEmpty();
+        player.CardCvv.Length.ShouldBe(3);
+    }
+}
 
+internal static class ShouldlyExtensions
+{
+    public static void ShouldBeBetween(this DateTime date, DateTime start, DateTime end)
+    {
+        date.ShouldBeGreaterThanOrEqualTo(start);
+        date.ShouldBeLessThanOrEqualTo(end);
+    }
 }

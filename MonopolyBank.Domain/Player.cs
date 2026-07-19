@@ -2,6 +2,19 @@ namespace MonopolyBank.Domain;
 
 public class Player(bool hasRole)
 {
+    public Player(string name) : this(true)
+    {
+        Name = name;
+    }
+
+    public string Name { get; } = "";
+
+    public string CardNumber { get; } = Guid.NewGuid().ToString();
+
+    public DateTime CardExpiry { get; } = DateTime.Now.AddYears(1);
+
+    public string CardCvv { get; } = Random.Shared.Next(1000).ToString("D3");
+
     public int Money { get; private set; } = 1000;
 
     internal Game? Game { get; set; }
