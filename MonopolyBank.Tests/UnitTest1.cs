@@ -203,4 +203,19 @@ public class Tests
             .Message.ShouldBe("A player's balance cannot go negative.");
         user.Player.Money.ShouldBe(1000);
     }
+
+    [Fact]
+    public void AnUserCannotTransferMoneyToAnotherUserFromAnotherGame()
+    {
+        var user = new User();
+        var anotherUser = new User();
+
+        var game1 = new Game();
+        var game2 = new Game();
+        game1.AddUser(user);
+        game2.AddUser(anotherUser);
+        Should.Throw<CrossGameAccessException>(() => user.Player.TransferMoney(anotherUser.Player, 100))
+            .Message.ShouldBe("Cannot transfer money to another user from another game.");
+        
+    }
 }

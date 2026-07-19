@@ -12,5 +12,6 @@ public class Game
             throw new DuplicateBankerException();
 
         _users.Add(user);
+        user.Player.Game = this;
     }
 }
