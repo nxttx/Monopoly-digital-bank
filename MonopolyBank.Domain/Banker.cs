@@ -6,7 +6,7 @@ public class Banker : Role
     {
     }
 
-    internal Game? Game { get; set; }
+    public IReadOnlyList<Transaction> GlobalHistory => Game?.Ledger ?? [];
 
     public IEnumerable<Player> Players =>
         Game?.Users.Where(u => u.IsPlayer).Select(u => u.Player) ?? [];

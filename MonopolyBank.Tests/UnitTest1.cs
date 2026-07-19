@@ -583,6 +583,27 @@ public class Tests
         thirdUser.Player.History[0].From.ShouldBe(banker.Banker);
         thirdUser.Player.History[0].To.ShouldBe(thirdUser.Player);
     }
+    
+    [Fact]
+    public void BankerShouldSeeHisOwnHistoryAndTheHistoryOfThePlayers()
+    {
+        var user = new User("Jan");
+        var anotherUser = new User("Bob");
+        var banker = new User("Mick", UserType.Banker);
+        var game = new Game();
+        game.AddUser(user);
+        game.AddUser(anotherUser);
+        game.AddUser(banker);
+        game.Start();
+        
+        user.Player.TransferMoney(anotherUser.Player, 100);
+
+        banker.Banker.GlobalHistory.ShouldContain(h => h.Amount == 100 && h.From == user.Player && h.To == anotherUser.Player);
+        banker.Banker.GlobalHistory.ShouldContain(h => h.Amount == 1500 && h.From == banker.Banker && h.To == user.Player);
+        
+        banker.Banker.History.ShouldContain(h => h.Amount == 1500 && h.From == banker.Banker && h.To == user.Player);
+        banker.Banker.History.ShouldContain(h => h.Amount == 1500 && h.From == banker.Banker && h.To == anotherUser.Player);
+    }
 }
 
 internal static class ShouldlyExtensions

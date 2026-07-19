@@ -20,11 +20,6 @@ public class Player : Role
 
     public int Money { get; private set; } = 1500;
 
-    internal Game? Game { get; set; }
-
-    public IReadOnlyList<Transaction> History =>
-        Game?.Ledger.Where(t => t.From == this || t.To == this).ToList() ?? [];
-
     public void TransferMoney(Player to, int amount)
     {
         if (Game != to.Game)
