@@ -8,11 +8,11 @@ public class Player(bool hasRole)
 
     public void TransferMoney(Player to, int amount)
     {
-        if (!hasRole)
-            throw new MissingRoleException("player");
-
         if (Game != to.Game)
             throw new CrossGameAccessException();
+
+        if (!hasRole)
+            throw new MissingRoleException("player");
 
         if (amount < 0)
             throw new NegativeTransferException();
