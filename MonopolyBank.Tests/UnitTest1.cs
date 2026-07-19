@@ -411,7 +411,32 @@ public class Tests
         user1.Player.Money.ShouldBe(1600);
     }
     
+    [Fact]
+    public void TheBankerShouldKnowTheAmountOfMoneyAllPlayersHave()
+    {
+        var user = new User("Jan");
+        var anotherUser = new User("Bob");
+        var banker = new User("Mick", UserType.Banker);
+        var game = new Game();
+        game.AddUser(user);
+        game.AddUser(anotherUser);
+        game.AddUser(banker);
+        game.Start();
 
+        banker.Banker.Players.ShouldAllBe(p => p.Money == 1500);
+
+        user.Player.TransferMoney(anotherUser.Player, 100);
+        banker.Banker.Players.ShouldContain(p => p == user.Player);
+        banker.Banker.Players.ShouldContain(p => p == anotherUser.Player);
+        
+        var bankersUser = banker.Banker.Players.FirstOrDefault(p => p == user.Player);
+        bankersUser.ShouldNotBeNull();
+        bankersUser.Money.ShouldBe(1400);
+        
+        var bankersAnotherUser = banker.Banker.Players.FirstOrDefault(p => p == anotherUser.Player);
+        bankersAnotherUser.ShouldNotBeNull();
+        bankersAnotherUser.Money.ShouldBe(1600);
+    }
 }
 
 internal static class ShouldlyExtensions
