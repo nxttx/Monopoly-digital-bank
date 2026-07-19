@@ -109,6 +109,19 @@ public class Tests
 
         Should.Throw<InvalidOperationException>(() => user.Banker.TransferMoney(anotherUser.Player, 100));
     }
+    
+    [Fact]
+    public void ABankerWithoutPlayerRoleCannotGiveMoney()
+    {
+        var banker = new User(UserType.Banker);
+        var anotherUser = new User();
+
+        banker.IsBanker.ShouldBeTrue();
+        banker.IsPlayer.ShouldBeFalse();
+        anotherUser.IsPlayer.ShouldBeTrue();
+
+        Should.Throw<InvalidOperationException>(() => banker.Player.TransferMoney(anotherUser.Player, 100));
+    }
 
     [Fact]
     public void ThereShouldAlwaysOnlyBeOneBanker()
@@ -133,4 +146,6 @@ public class Tests
         
         game.Users.Count.ShouldBe(3);
     }
+    
+    
 }
