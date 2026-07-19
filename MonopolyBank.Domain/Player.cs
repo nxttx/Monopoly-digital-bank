@@ -18,7 +18,7 @@ public class Player : Role
 
     public BankCard BankCard { get; } = new();
 
-    public int Money { get; private set; } = 1000;
+    public int Money { get; private set; } = 1500;
 
     internal Game? Game { get; set; }
 

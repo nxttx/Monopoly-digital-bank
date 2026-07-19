@@ -26,7 +26,7 @@ public class Tests
         var user = new User("Jan");
         user.ShouldNotBeNull();
 
-        user.Player.Money.ShouldBe(1000);
+        user.Player.Money.ShouldBe(1500);
     }
 
     [Fact]
@@ -63,13 +63,13 @@ public class Tests
         game.AddUser(banker);
         game.Start();
 
-        user1.Player.Money.ShouldBe(1000);
-        user2.Player.Money.ShouldBe(1000);
+        user1.Player.Money.ShouldBe(1500);
+        user2.Player.Money.ShouldBe(1500);
 
         user1.Player.TransferMoney(user2.Player, 100);
 
-        user1.Player.Money.ShouldBe(900);
-        user2.Player.Money.ShouldBe(1100);
+        user1.Player.Money.ShouldBe(1400);
+        user2.Player.Money.ShouldBe(1600);
     }
 
 
@@ -86,11 +86,11 @@ public class Tests
         game.AddUser(anotherUser);
         game.Start();
 
-        user.Player.Money.ShouldBe(1000);
+        user.Player.Money.ShouldBe(1500);
 
         banker.Banker.TransferMoney(user.Player, 100);
 
-        user.Player.Money.ShouldBe(1100);
+        user.Player.Money.ShouldBe(1600);
     }
 
     [Fact]
@@ -112,8 +112,8 @@ public class Tests
 
         user.Player.TransferMoney(anotherUser.Player, 100);
 
-        user.Player.Money.ShouldBe(900);
-        anotherUser.Player.Money.ShouldBe(1200);
+        user.Player.Money.ShouldBe(1400);
+        anotherUser.Player.Money.ShouldBe(1700);
     }
 
     [Fact]
@@ -196,13 +196,13 @@ public class Tests
         game.AddUser(banker);
         game.Start();
 
-        user1.Player.Money.ShouldBe(1000);
-        user2.Player.Money.ShouldBe(1000);
+        user1.Player.Money.ShouldBe(1500);
+        user2.Player.Money.ShouldBe(1500);
 
         Should.Throw<NegativeTransferException>(() => user1.Player.TransferMoney(user2.Player, -100))
             .Message.ShouldBe("A player cannot transfer a negative amount.");
-        user1.Player.Money.ShouldBe(1000);
-        user2.Player.Money.ShouldBe(1000);
+        user1.Player.Money.ShouldBe(1500);
+        user2.Player.Money.ShouldBe(1500);
     }
 
     [Fact]
@@ -218,9 +218,9 @@ public class Tests
         game.AddUser(anotherUser);
         game.Start();
 
-        user.Player.Money.ShouldBe(1000);
+        user.Player.Money.ShouldBe(1500);
         banker.Banker.TransferMoney(user.Player, -100);
-        user.Player.Money.ShouldBe(900);
+        user.Player.Money.ShouldBe(1400);
     }
 
     [Fact]
@@ -236,13 +236,13 @@ public class Tests
         game.AddUser(banker);
         game.Start();
 
-        user.Player.Money.ShouldBe(1000);
-        anotherUser.Player.Money.ShouldBe(1000);
+        user.Player.Money.ShouldBe(1500);
+        anotherUser.Player.Money.ShouldBe(1500);
 
-        Should.Throw<InsufficientBalanceException>(() => user.Player.TransferMoney(anotherUser.Player, 1100))
+        Should.Throw<InsufficientBalanceException>(() => user.Player.TransferMoney(anotherUser.Player, 1600))
             .Message.ShouldBe("A player's balance cannot go negative.");
-        user.Player.Money.ShouldBe(1000);
-        anotherUser.Player.Money.ShouldBe(1000);
+        user.Player.Money.ShouldBe(1500);
+        anotherUser.Player.Money.ShouldBe(1500);
     }
 
     [Fact]
@@ -258,11 +258,11 @@ public class Tests
         game.AddUser(anotherUser);
         game.Start();
 
-        user.Player.Money.ShouldBe(1000);
+        user.Player.Money.ShouldBe(1500);
 
-        Should.Throw<InsufficientBalanceException>(() => banker.Banker.TransferMoney(user.Player, -1100))
+        Should.Throw<InsufficientBalanceException>(() => banker.Banker.TransferMoney(user.Player, -1600))
             .Message.ShouldBe("A player's balance cannot go negative.");
-        user.Player.Money.ShouldBe(1000);
+        user.Player.Money.ShouldBe(1500);
     }
 
     [Fact]
@@ -383,8 +383,8 @@ public class Tests
         game.Start();
 
         user1.Player.TransferMoney(user2.Player, 100);
-        user1.Player.Money.ShouldBe(900);
-        user2.Player.Money.ShouldBe(1100);
+        user1.Player.Money.ShouldBe(1400);
+        user2.Player.Money.ShouldBe(1600);
     }
 
     [Fact]
@@ -408,8 +408,10 @@ public class Tests
         game.Start();
 
         banker.Banker.TransferMoney(user1.Player, 100);
-        user1.Player.Money.ShouldBe(1100);
+        user1.Player.Money.ShouldBe(1600);
     }
+    
+
 }
 
 internal static class ShouldlyExtensions
