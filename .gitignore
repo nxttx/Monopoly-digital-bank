@@ -1,3 +1,6 @@
+# Claude session memory (local only, see CLAUDE.md rule 10)
+CLAUDE_MEMORY.md
+
 # Build results
 bin/
 obj/

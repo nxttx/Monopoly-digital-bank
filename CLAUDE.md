@@ -13,6 +13,7 @@ A Monopoly banking domain, built with **DDD** and strict **TDD**. The user has R
 7. **Git:** Claude may commit on its own judgment (a green, coherent state is a good moment), must inform the user each time it does, and must NEVER commit on `master`/`main` — always work on a feature branch.
 8. **If Claude changed any test file, ask before committing** so the user can review the test changes first. Autonomous commits are only allowed when the diff touches no test code.
 9. **Test changes and implementation are separate steps.** When asked to change tests, change ONLY the tests and stop — the user wants to see the red state first. Implement only when explicitly told to.
+10. **Memory: Claude persists session knowledge in `CLAUDE_MEMORY.md`** (repo root, gitignored — NEVER commit it). Read it at the start of every session. Whenever durable knowledge appears — a decision, a user preference, project state, an experiment outcome — update it in the same turn without being asked. Keep it terse; prune stale entries. Rules and domain decisions belong in CLAUDE.md, everything else session-worthy goes there. If the file is missing, recreate it from what you know.
 
 ## Project structure
 
