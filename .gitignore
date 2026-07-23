@@ -1,6 +1,11 @@
 # Claude session memory (local only, see CLAUDE.md rule 10)
 CLAUDE_MEMORY.md
 
+# Local SQLite databases
+*.db
+*.db-shm
+*.db-wal
+
 # Build results
 bin/
 obj/
