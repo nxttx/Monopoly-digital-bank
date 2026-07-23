@@ -457,6 +457,32 @@ public class Tests
 
         banker.Banker.Players.ShouldAllBe(p => p.Money == 2000);
     }
+    
+    [Fact]
+    public void EveryOneShouldHaveTheSameAmountOfStartingMoney()
+    {
+        var jan = new User("Jan");
+        var bob = new User("Bob");
+        var banker = new User("Mick", UserType.Banker);
+        var game = new Game();
+        game.AddUser(jan);
+        game.AddUser(bob);
+        game.AddUser(banker);
+
+        banker.Banker.SetStartAmount(2000);
+
+        banker.Banker.StartAmount.ShouldBe(2000);
+        game.Users.ShouldAllBe(u => u.Player.Money == 2000);
+
+        game.Start();
+
+        banker.Banker.Players.ShouldAllBe(p => p.Money == 2000);
+        
+        var anouk = new User("Anouk");
+        game.AddUser(anouk);
+        game.Users.ShouldAllBe(u => u.Player.Money == 2000);
+        
+    }
 
     [Fact]
     public void APlayerShouldNotBeAbleToSetTheBeginningAmountOfMoney()

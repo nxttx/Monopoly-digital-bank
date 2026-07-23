@@ -41,7 +41,7 @@ public class Game
 
         if (BankerUser is not { } banker)
             return;
-
+        
         user.Player.Adjust(banker.Banker.StartAmount - user.Player.Money);
 
         if (Started)
