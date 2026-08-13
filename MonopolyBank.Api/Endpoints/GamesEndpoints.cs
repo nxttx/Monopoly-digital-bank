@@ -15,6 +15,19 @@ public static class GamesEndpoints
             new Dictionary<string, string> { ["Get details"] = $"/games/{gameId}/" });
     }
 
+    public static ApiResult<IReadOnlyList<GameSummary>> GetAllGames(GameStore store)
+    {
+        var gameIds = store.GameIds();
+        var links = new Dictionary<string, string>();
+        for (var i = 0; i < gameIds.Count; i++)
+            links[$"Get details game {i + 1}"] = $"/games/{gameIds[i]}/";
+
+        return new ApiResult<IReadOnlyList<GameSummary>>(
+            new HttpCall("/games/", HttpMethod.Get, HttpStatusCode.OK),
+            gameIds.Select(id => new GameSummary(id)).ToList(),
+            links);
+    }
+
     public static ApiResult<GameDetails> GetGame(GameStore store, Guid gameId)
     {
         var game = store.Find(gameId);
@@ -48,6 +61,8 @@ public static class GamesEndpoints
 }
 
 public record GameCreated(Guid GameId);
+
+public record GameSummary(Guid GameId);
 
 public record GameDetails(
     Guid GameId,

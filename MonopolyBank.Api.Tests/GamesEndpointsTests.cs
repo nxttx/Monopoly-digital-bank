@@ -1,7 +1,4 @@
 using System.Net;
-using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.AspNetCore.Server.Kestrel.Core;
-using MonopolyBank.Api;
 using MonopolyBank.Api.Endpoints;
 using MonopolyBank.Api.Persistence;
 using MonopolyBank.Domain;
@@ -29,6 +26,28 @@ public class GamesEndpointsTests
         
         store.Find(result.Value.GameId).ShouldNotBeNull();
     }
+    [Fact]
+    public void GetAllGames_ReturnsGamesWithAGameIdThatCanBeFoundInTheStore()
+    {
+        var store = CreateGameStore();
+        var game = GamesEndpoints.CreateGame(store);
+        var gameId = game.Value!.GameId;
+        var game2 = GamesEndpoints.CreateGame(store);
+        var gameId2 = game2.Value!.GameId;
+
+        var result = GamesEndpoints.GetAllGames(store);
+
+        result.Http.Location.ShouldBe($"/games/");
+        result.Http.Method.ShouldBe(HttpMethod.Get);
+        result.Http.StatusCode.ShouldBe(HttpStatusCode.OK);
+        
+        result.Value.ShouldNotBeNull();
+        result.Value.ShouldNotBeEmpty();
+        result.Value.ShouldContain(g => g.GameId == gameId);
+        result.Value.ShouldContain(g => g.GameId == gameId2);
+        result.Links.ShouldContain(new KeyValuePair<string, string>("Get details game 1", $"/games/{gameId}/"));
+        result.Links.ShouldContain(new KeyValuePair<string, string>("Get details game 2", $"/games/{gameId2}/"));
+    }
 
     [Fact]
     public void GetGame_ReturnsGameWithTheCorrectIdAndInfo()
@@ -53,7 +72,6 @@ public class GamesEndpointsTests
         result.Value.BankerUser.ShouldBe(null);
         
         result.Links.ShouldContain(new KeyValuePair<string, string>("Add user", $"/games/{result.Value.GameId}/users/"));
-
     }
     
     [Fact]
@@ -70,12 +88,9 @@ public class GamesEndpointsTests
         result.Http.StatusCode.ShouldBe(HttpStatusCode.NotFound);
         result.Value.ShouldBeNull();
         
-        
         result.Links.ShouldContain(new KeyValuePair<string, string>("Add game", $"/games/"));
-
     }
     
-
     [Fact]
     public void CreateUserInGame_ReturnsCreatedWithAUserIdThatCanBeFoundInTheStore()
     {

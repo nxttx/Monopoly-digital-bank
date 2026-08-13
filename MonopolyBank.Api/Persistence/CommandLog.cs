@@ -78,6 +78,27 @@ public sealed class CommandLog : IDisposable
         }
     }
 
+    public IReadOnlyList<Guid> GameIds()
+    {
+        lock (_lock)
+        {
+            using var select = _connection.CreateCommand();
+            select.CommandText =
+                """
+                SELECT gameId FROM game_commands
+                GROUP BY gameId
+                ORDER BY MIN(rowid);
+                """;
+
+            var ids = new List<Guid>();
+            using var reader = select.ExecuteReader();
+            while (reader.Read())
+                ids.Add(Guid.Parse(reader.GetString(0)));
+
+            return ids;
+        }
+    }
+
     public void Dispose() => _connection.Dispose();
 
     private static GameCommand Deserialize(string type, string payload) => type switch

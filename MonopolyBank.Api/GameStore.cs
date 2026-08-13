@@ -22,6 +22,8 @@ public class GameStore(CommandLog log)
         return gameId;
     }
 
+    public IReadOnlyList<Guid> GameIds() => log.GameIds();
+
     public Game? Find(Guid gameId)
     {
         if (_games.TryGetValue(gameId, out var cached))
