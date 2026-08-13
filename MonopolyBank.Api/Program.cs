@@ -7,7 +7,10 @@ using Scalar.AspNetCore;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.ConfigureHttpJsonOptions(o =>
-    o.SerializerOptions.Converters.Add(new JsonStringEnumConverter()));
+{
+    o.SerializerOptions.Converters.Add(new HttpStatusCodeJsonConverter());
+    o.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
+});
 builder.Services.AddOpenApi();
 builder.Services.AddSingleton(_ => new CommandLog(
     builder.Configuration.GetConnectionString("MonopolyBank") ?? "Data Source=monopolybank.db"));
