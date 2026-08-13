@@ -14,7 +14,7 @@ namespace MonopolyBank.Api.Tests;
 public class ScaffoldSmokeTest
 {
     [Fact]
-    public void AGameSurvivesAReplayFromTheCommandLog()
+    public void Persistance_AGameSurvivesAReplayFromTheCommandLog()
     {
         using var log = new CommandLog("Data Source=:memory:");
         var store = new GameStore(log);
