@@ -17,7 +17,13 @@ public static class GamesEndpoints
 
     public static ApiResult<GameDetails> GetGame(GameStore store, Guid gameId)
     {
-        var game = store.Find(gameId) ?? throw new GameNotFoundException(gameId);
+        var game = store.Find(gameId);
+        if (game is null)
+            return new ApiResult<GameDetails>(
+                new HttpCall($"/games/{gameId}/", HttpMethod.Get, HttpStatusCode.NotFound),
+                null,
+                new Dictionary<string, string> { ["Add game"] = "/games/" });
+
         return new ApiResult<GameDetails>(
             new HttpCall($"/games/{gameId}/", HttpMethod.Get, HttpStatusCode.OK),
             new GameDetails(

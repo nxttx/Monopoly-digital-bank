@@ -55,6 +55,26 @@ public class GamesEndpointsTests
         result.Links.ShouldContain(new KeyValuePair<string, string>("Add user", $"/games/{result.Value.GameId}/users/"));
 
     }
+    
+    [Fact]
+    public void GetUnknownGame_Returns404()
+    {
+        var store = CreateGameStore();
+        var gameId = Guid.NewGuid();
+        
+        
+        var result = GamesEndpoints.GetGame(store, gameId);
+        
+        result.Http.Location.ShouldBe($"/games/{gameId}/");
+        result.Http.Method.ShouldBe(HttpMethod.Get);
+        result.Http.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+        result.Value.ShouldBeNull();
+        
+        
+        result.Links.ShouldContain(new KeyValuePair<string, string>("Add game", $"/games/"));
+
+    }
+    
 
     [Fact]
     public void CreateUserInGame_ReturnsCreatedWithAUserIdThatCanBeFoundInTheStore()
