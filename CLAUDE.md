@@ -40,6 +40,7 @@ A Monopoly banking domain, built with **DDD** and strict **TDD**. The user has R
 - Invariant: a player's balance can never go negative — players can't overpay, and the bank can't collect more than the player has (both throw, balances untouched).
 - Rule violations throw domain-specific exceptions deriving from `InvalidOperationException`: `MissingRoleException(role)`, `NegativeTransferException`, `InsufficientBalanceException`, `DuplicateBankerException`. Tests assert both the exception type and its message.
 - `Game` was removed when its test was dropped — recreate it only when a test demands it.
+- `Game.Started` and `Game.DefaultStartAmount` are public reads (widened from internal 2026-08-13 — the API's `GameDetails` needed them; setters stay domain-private).
 
 ## Tech notes
 

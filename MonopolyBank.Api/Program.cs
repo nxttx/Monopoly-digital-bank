@@ -19,6 +19,8 @@ app.MapScalarApiReference();
 app.MapGet("/health", () => Results.Ok(new { status = "healthy" })); // temporary scaffold check
 app.MapPost("/games", (GameStore store) =>
     GamesEndpoints.CreateGame(store).ToHttpResult());
+app.MapGet("/games/{gameId:guid}", (GameStore store, Guid gameId) =>
+    GamesEndpoints.GetGame(store, gameId).ToHttpResult());
 app.MapPost("/games/{gameId:guid}/users", (GameStore store, Guid gameId, CreateUserRequest request) =>
     GamesEndpoints.CreateUser(store, gameId, request).ToHttpResult());
 

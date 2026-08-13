@@ -12,6 +12,21 @@ public static class GamesEndpoints
         return new ApiResult<GameCreated>(
             new HttpCall("/games/", HttpMethod.Post, HttpStatusCode.Created),
             new GameCreated(gameId),
+            new Dictionary<string, string> { ["Get details"] = $"/games/{gameId}/" });
+    }
+
+    public static ApiResult<GameDetails> GetGame(GameStore store, Guid gameId)
+    {
+        var game = store.Find(gameId) ?? throw new GameNotFoundException(gameId);
+        return new ApiResult<GameDetails>(
+            new HttpCall($"/games/{gameId}/", HttpMethod.Get, HttpStatusCode.OK),
+            new GameDetails(
+                gameId,
+                game.Users.Select(u => u.Player.Name).ToList(),
+                game.Currency,
+                game.Started,
+                Game.DefaultStartAmount,
+                game.Users.FirstOrDefault(u => u.IsBanker)?.Player.Name),
             new Dictionary<string, string> { ["Add user"] = $"/games/{gameId}/users/" });
     }
 
@@ -21,13 +36,21 @@ public static class GamesEndpoints
         var userId = Guid.NewGuid();
         return new ApiResult<UserCreated>(
             new HttpCall($"/games/{gameId}/users/", HttpMethod.Post, HttpStatusCode.Created),
-            new UserCreated(userId),
-            new Dictionary<string, string>());
+            new UserCreated(userId, gameId),
+            new Dictionary<string, string> { ["Get details"] = $"/games/{gameId}/" });
     }
 }
 
 public record GameCreated(Guid GameId);
 
+public record GameDetails(
+    Guid GameId,
+    IReadOnlyList<string> Users,
+    Currencies Currency,
+    bool Started,
+    int DefaultStartAmount,
+    string? BankerUser);
+
 public record CreateUserRequest(string Name, UserType Type);
 
-public record UserCreated(Guid UserId);
+public record UserCreated(Guid UserId, Guid GameId);

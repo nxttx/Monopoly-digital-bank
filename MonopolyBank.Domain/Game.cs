@@ -2,7 +2,7 @@ namespace MonopolyBank.Domain;
 
 public class Game
 {
-    internal const int DefaultStartAmount = 1500;
+    public const int DefaultStartAmount = 1500;
 
     private readonly List<User> _users = [];
 
@@ -10,7 +10,7 @@ public class Game
 
     public Currencies Currency { get; internal set; } = Currencies.Monopolonian;
 
-    internal bool Started { get; private set; }
+    public bool Started { get; private set; }
 
     internal List<Transaction> Ledger { get; } = [];
 
