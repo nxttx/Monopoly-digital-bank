@@ -37,25 +37,29 @@ public static class GamesEndpoints
                 null,
                 new Dictionary<string, string> { ["Add game"] = "/games/" });
 
+        var users = store.UsersOf(gameId)
+            .Select(u => new UserSummary(u.UserId, u.Name, u.Type))
+            .ToList();
+
         return new ApiResult<GameDetails>(
             new HttpCall($"/games/{gameId}/", HttpMethod.Get, HttpStatusCode.OK),
             new GameDetails(
                 gameId,
-                game.Users.Select(u => u.Player.Name).ToList(),
+                users,
                 game.Currency,
                 game.Started,
                 Game.DefaultStartAmount,
-                game.Users.FirstOrDefault(u => u.IsBanker)?.Player.Name),
+                users.FirstOrDefault(u => u.Type is UserType.Banker or UserType.Both)),
             new Dictionary<string, string> { ["Add user"] = $"/games/{gameId}/users/" });
     }
 
     public static ApiResult<UserCreated> CreateUser(GameStore store, Guid gameId, CreateUserRequest request)
     {
-        store.Execute(gameId, new GameCommand.AddUser(request.Name, request.Type));
         var userId = Guid.NewGuid();
+        store.Execute(gameId, new GameCommand.AddUser(userId, request.Name, request.Type));
         return new ApiResult<UserCreated>(
             new HttpCall($"/games/{gameId}/users/", HttpMethod.Post, HttpStatusCode.Created),
-            new UserCreated(userId, gameId),
+            new UserCreated(userId, gameId, request.Name, request.Type),
             new Dictionary<string, string> { ["Get details"] = $"/games/{gameId}/" });
     }
 }
@@ -66,12 +70,14 @@ public record GameSummary(Guid GameId);
 
 public record GameDetails(
     Guid GameId,
-    IReadOnlyList<string> Users,
+    IReadOnlyList<UserSummary> Users,
     Currencies Currency,
     bool Started,
     int DefaultStartAmount,
-    string? BankerUser);
+    UserSummary? BankerUser);
+
+public record UserSummary(Guid UserId, string Name, UserType Type);
 
 public record CreateUserRequest(string Name, UserType Type);
 
-public record UserCreated(Guid UserId, Guid GameId);
+public record UserCreated(Guid UserId, Guid GameId, string Name, UserType Type);

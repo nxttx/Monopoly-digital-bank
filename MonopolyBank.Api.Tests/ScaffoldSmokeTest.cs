@@ -20,9 +20,9 @@ public class ScaffoldSmokeTest
         var store = new GameStore(log);
 
         var id = store.CreateGame();
-        store.Execute(id, new GameCommand.AddUser("Jan", UserType.Player));
-        store.Execute(id, new GameCommand.AddUser("Bob", UserType.Player));
-        store.Execute(id, new GameCommand.AddUser("Mick", UserType.Banker));
+        store.Execute(id, new GameCommand.AddUser(Guid.NewGuid(), "Jan", UserType.Player));
+        store.Execute(id, new GameCommand.AddUser(Guid.NewGuid(), "Bob", UserType.Player));
+        store.Execute(id, new GameCommand.AddUser(Guid.NewGuid(), "Mick", UserType.Banker));
         store.Execute(id, new GameCommand.Start());
         store.Execute(id, new GameCommand.PlayerTransfer("Jan", "Bob", 100));
 

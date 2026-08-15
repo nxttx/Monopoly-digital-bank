@@ -24,6 +24,14 @@ public class GameStore(CommandLog log)
 
     public IReadOnlyList<Guid> GameIds() => log.GameIds();
 
+    /// <summary>
+    /// The users added to a game, straight from the command log: exactly the
+    /// successful adds, in order, with the identity the API minted for them
+    /// (the domain itself stays id-free).
+    /// </summary>
+    public IReadOnlyList<GameCommand.AddUser> UsersOf(Guid gameId) =>
+        log.Read(gameId).OfType<GameCommand.AddUser>().ToList();
+
     public Game? Find(Guid gameId)
     {
         if (_games.TryGetValue(gameId, out var cached))
@@ -57,7 +65,7 @@ public class GameStore(CommandLog log)
     {
         switch (command)
         {
-            case GameCommand.AddUser(var name, var type):
+            case GameCommand.AddUser(_, var name, var type):
                 game.AddUser(new User(name, type));
                 break;
             case GameCommand.SetStartAmount(var amount):

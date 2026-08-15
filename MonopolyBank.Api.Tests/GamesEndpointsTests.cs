@@ -114,6 +114,36 @@ public class GamesEndpointsTests
         storedGame.Users.ShouldContain(u => u.Player.Name == "Robert");
     }
 
+    [Fact]
+    public void GetGameWithUsers_ReturnsGameWithTheCorrectIdAndUserInfo()
+    {
+        var store = CreateGameStore();
+        var game = GamesEndpoints.CreateGame(store);
+        var gameId = game.Value!.GameId;
+        var banker = GamesEndpoints.CreateUser(store, gameId, new CreateUserRequest("Robert", UserType.Both));
+        var player = GamesEndpoints.CreateUser(store, gameId, new CreateUserRequest("Bob", UserType.Player));
+        var player2 = GamesEndpoints.CreateUser(store, gameId, new CreateUserRequest("Allice", UserType.Player));
+        
+        var result = GamesEndpoints.GetGame(store, gameId);
+        
+        result.Http.Location.ShouldBe($"/games/{gameId}/");
+        result.Http.Method.ShouldBe(HttpMethod.Get);
+        result.Http.StatusCode.ShouldBe(HttpStatusCode.OK);
+        
+        result.Value.ShouldNotBeNull();
+        result.Value.GameId.ShouldBe(gameId);
+        result.Value.Users.ShouldContain(u => u.UserId == banker.Value.UserId && u.Name == banker.Value.Name && u.Type == banker.Value.Type);
+        
+        result.Value.Users.ShouldContain(u => u.UserId == player.Value.UserId && u.Name == player.Value.Name && u.Type == player.Value.Type);
+        result.Value.Users.ShouldContain(u => u.UserId == player2.Value.UserId && u.Name == player2.Value.Name && u.Type == player2.Value.Type);
+        result.Value.Currency.ShouldBe(Currencies.Monopolonian);
+        result.Value.Started.ShouldBe(false);
+        result.Value.DefaultStartAmount.ShouldBe(1500);
+        result.Value.BankerUser.ShouldNotBeNull();
+        result.Value.BankerUser.UserId.ShouldBe(banker.Value.UserId);
+        result.Value.BankerUser.Name.ShouldBe(banker.Value.Name);
+    }
+
     private static GameStore CreateGameStore()
     {
         var log = new CommandLog("Data Source=:memory:");
