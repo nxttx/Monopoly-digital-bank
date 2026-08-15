@@ -72,7 +72,7 @@ public static class GamesEndpoints
 
 public record GameCreated(Guid GameId);
 
-public record GameSummary(Guid GameId, Dictionary<string, Link> Links);
+public record GameSummary(Guid GameId, Dictionary<string, Link> Actions);
 
 public record GameDetails(
     Guid GameId,
