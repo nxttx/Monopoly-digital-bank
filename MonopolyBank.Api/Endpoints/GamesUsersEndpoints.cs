@@ -11,7 +11,8 @@ public static class GamesUsersEndpoints
         app.MapPost("/games/{gameId:guid}/users", (GameStore store, Guid gameId, CreateUserRequest request) =>
                 CreateUser(store, gameId, request).ToHttpResult())
             .Produces<ApiResult<UserCreated>>(StatusCodes.Status201Created)
-            .Produces<ApiError>(StatusCodes.Status400BadRequest);
+            .Produces<ApiError>(StatusCodes.Status400BadRequest)
+            .Produces<ApiError>(StatusCodes.Status404NotFound);
         app.MapGet("/games/{gameId:guid}/users/{userId:guid}", (GameStore store, Guid gameId, Guid userId) =>
                 GetUser(store, gameId, userId).ToHttpResult())
             .Produces<ApiResult<UserInformation>>()
@@ -21,6 +22,12 @@ public static class GamesUsersEndpoints
     public static ApiResponse CreateUser(GameStore store, Guid gameId, CreateUserRequest request)
     {
         var location = ApiRoutes.GameUsers(gameId);
+
+        if (store.Find(gameId) is null)
+            return new ApiError(
+                new HttpCall(location, HttpMethod.Post, HttpStatusCode.NotFound),
+                [new FieldError("GameId", "Game not found.")],
+                new Dictionary<string, Link> { ["Add game"] = new(ApiRoutes.Games, HttpMethod.Post) });
 
         if (!Enum.TryParse<UserRole>(request.Role, out var role) || !Enum.IsDefined(role))
             return BadRequest(new FieldError("Role",

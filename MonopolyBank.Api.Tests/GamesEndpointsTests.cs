@@ -191,6 +191,22 @@ public class GamesEndpointsTests
         result.Errors.ShouldContain(e => e.Field == "Role" && e.Message == $"Role must be one of the following: {string.Join(", ", Enum.GetNames(typeof(UserRole)))}.");
         result.Actions.ShouldContain(new KeyValuePair<string, Link>("Add user", new Link($"/games/{gameId}/users/", HttpMethod.Post)));
     }
+    
+    [Fact]
+    public void CreateUserInUnknownGame_Returns404()
+    {
+        var store = CreateGameStore();
+        var gameId = Guid.NewGuid();
+        
+        var result = GamesUsersEndpoints.CreateUser(store, gameId, new CreateUserRequest("Bob", nameof(UserRole.Player))).ShouldBeOfType<ApiError>();
+        
+        result.Http.Location.ShouldBe($"/games/{gameId}/users/");
+        result.Http.Method.ShouldBe(HttpMethod.Post);
+        result.Http.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+        VerifyResultDoesNotContainValueProperty(result);
+        result.Errors.ShouldContain(e => e.Field == "GameId" && e.Message == "Game not found.");
+        result.Actions.ShouldContain(new KeyValuePair<string, Link>("Add game", new Link($"/games/", HttpMethod.Post)));
+    }
 
     [Fact]
     public void GetUser_ReturnsUserWithTheCorrectIdAndInfo()
