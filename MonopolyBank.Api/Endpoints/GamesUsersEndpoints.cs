@@ -14,7 +14,8 @@ public static class GamesUsersEndpoints
             .Produces<ApiError>(StatusCodes.Status400BadRequest);
         app.MapGet("/games/{gameId:guid}/users/{userId:guid}", (GameStore store, Guid gameId, Guid userId) =>
                 GetUser(store, gameId, userId).ToHttpResult())
-            .Produces<ApiResult<UserInformation>>();
+            .Produces<ApiResult<UserInformation>>()
+            .Produces<ApiError>(StatusCodes.Status404NotFound);
     }
 
     public static ApiResponse CreateUser(GameStore store, Guid gameId, CreateUserRequest request)
@@ -50,17 +51,36 @@ public static class GamesUsersEndpoints
             new Dictionary<string, Link> { ["Add user"] = new(location, HttpMethod.Post) });
     }
 
-    public static ApiResult<UserInformation> GetUser(GameStore store, Guid gameId, Guid userId)
+    public static ApiResponse GetUser(GameStore store, Guid gameId, Guid userId)
     {
+        var location = ApiRoutes.GameUser(gameId, userId);
+
+        var game = store.Find(gameId);
+        if (game is null)
+            return new ApiError(
+                new HttpCall(location, HttpMethod.Get, HttpStatusCode.NotFound),
+                [new FieldError("GameId", "Game not found.")],
+                new Dictionary<string, Link> { ["Add game"] = new(ApiRoutes.Games, HttpMethod.Post) });
+
         // The Nth AddUser command corresponds to the Nth game user (only successful
         // adds are logged, in order), so this join stays exact even with duplicate names.
         var added = store.UsersOf(gameId);
         var index = added.TakeWhile(u => u.UserId != userId).Count();
+        if (index == added.Count)
+            return new ApiError(
+                new HttpCall(location, HttpMethod.Get, HttpStatusCode.NotFound),
+                [new FieldError("UserId", "User not found.")],
+                new Dictionary<string, Link>
+                {
+                    ["Get game details"] = new(ApiRoutes.Game(gameId), HttpMethod.Get),
+                    ["Add user"] = new(ApiRoutes.GameUsers(gameId), HttpMethod.Post),
+                });
+
         var user = added[index];
-        var player = store.Find(gameId)!.Users.ElementAt(index).Player;
+        var player = game.Users.ElementAt(index).Player;
 
         return new ApiResult<UserInformation>(
-            new HttpCall(ApiRoutes.GameUser(gameId, userId), HttpMethod.Get, HttpStatusCode.OK),
+            new HttpCall(location, HttpMethod.Get, HttpStatusCode.OK),
             new UserInformation(userId, user.Name, user.Role, player.Money, player.BankCard, gameId),
             new Dictionary<string, Link> { ["Get game details"] = new(ApiRoutes.Game(gameId), HttpMethod.Get) });
     }

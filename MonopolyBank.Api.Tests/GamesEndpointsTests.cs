@@ -30,10 +30,8 @@ public class GamesEndpointsTests
     public void GetAllGames_ReturnsGamesWithAGameIdThatCanBeFoundInTheStore()
     {
         var store = CreateGameStore();
-        var game = GamesEndpoints.CreateGame(store);
-        var gameId = game.Value!.GameId;
-        var game2 = GamesEndpoints.CreateGame(store);
-        var gameId2 = game2.Value!.GameId;
+        var gameId =CreateGame(store);
+        var gameId2 =CreateGame(store);
 
         var result = GamesEndpoints.GetAllGames(store);
 
@@ -58,9 +56,7 @@ public class GamesEndpointsTests
     public void GetGame_ReturnsGameWithTheCorrectIdAndInfo()
     {
         var store = CreateGameStore();
-        var game = GamesEndpoints.CreateGame(store);
-        var gameId = game.Value!.GameId;
-
+        var gameId =CreateGame(store);
 
         var result = GamesEndpoints.GetGame(store, gameId).ShouldBeOfType<ApiResult<GameDetails>>();
 
@@ -101,8 +97,7 @@ public class GamesEndpointsTests
     public void CreateUserInGame_ReturnsCreatedWithAUserIdThatCanBeFoundInTheStore()
     {
         var store = CreateGameStore();
-        var game = GamesEndpoints.CreateGame(store);
-        var gameId = game.Value!.GameId;
+        var gameId =CreateGame(store);
 
         var result = GamesUsersEndpoints.CreateUser(store, gameId, new CreateUserRequest("Robert", nameof(UserRole.Banker)))
             .ShouldBeOfType<ApiResult<UserCreated>>();
@@ -126,13 +121,12 @@ public class GamesEndpointsTests
     public void GetGameWithUsers_ReturnsGameWithTheCorrectIdAndUserInfo()
     {
         var store = CreateGameStore();
-        var game = GamesEndpoints.CreateGame(store);
-        var gameId = game.Value!.GameId;
-        var banker = GamesUsersEndpoints.CreateUser(store, gameId, new CreateUserRequest("Robert", UserRole.Both.ToString()))
+        var gameId =CreateGame(store);
+        var banker = GamesUsersEndpoints.CreateUser(store, gameId, new CreateUserRequest("Robert", nameof(UserRole.Both)))
             .ShouldBeOfType<ApiResult<UserCreated>>();
-        var player = GamesUsersEndpoints.CreateUser(store, gameId, new CreateUserRequest("Bob", UserRole.Player.ToString()))
+        var player = GamesUsersEndpoints.CreateUser(store, gameId, new CreateUserRequest("Bob", nameof(UserRole.Player)))
             .ShouldBeOfType<ApiResult<UserCreated>>();
-        var player2 = GamesUsersEndpoints.CreateUser(store, gameId, new CreateUserRequest("Allice", UserRole.Player.ToString()))
+        var player2 = GamesUsersEndpoints.CreateUser(store, gameId, new CreateUserRequest("Allice", nameof(UserRole.Player)))
             .ShouldBeOfType<ApiResult<UserCreated>>();
 
         var result = GamesEndpoints.GetGame(store, gameId).ShouldBeOfType<ApiResult<GameDetails>>();
@@ -166,8 +160,7 @@ public class GamesEndpointsTests
     public void CreateUserInGameWithInvalidName_Returns400()
     {
         var store = CreateGameStore();
-        var game = GamesEndpoints.CreateGame(store);
-        var gameId = game.Value!.GameId;
+        var gameId =CreateGame(store);
     
         var result = GamesUsersEndpoints.CreateUser(store, gameId, new CreateUserRequest("", nameof(UserRole.Banker)))
             .ShouldBeOfType<ApiError>();
@@ -185,8 +178,7 @@ public class GamesEndpointsTests
     public void CreateUserInGameWithInvalidRole_Returns400()
     {
         var store = CreateGameStore();
-        var game = GamesEndpoints.CreateGame(store);
-        var gameId = game.Value!.GameId;
+        var gameId =CreateGame(store);
     
         var result = GamesUsersEndpoints.CreateUser(store, gameId, new CreateUserRequest("Bob", "WrongRole"))
             .ShouldBeOfType<ApiError>();
@@ -204,8 +196,7 @@ public class GamesEndpointsTests
     public void GetUser_ReturnsUserWithTheCorrectIdAndInfo()
     {
         var store = CreateGameStore();
-        var game = GamesEndpoints.CreateGame(store);
-        var gameId = game.Value!.GameId;
+        var gameId =CreateGame(store);
 
         var user =
             GamesUsersEndpoints.CreateUser(store, gameId, new CreateUserRequest("Bob", nameof(UserRole.Player))).ShouldBeOfType<ApiResult<UserCreated>>();
@@ -216,9 +207,6 @@ public class GamesEndpointsTests
         result.Http.Location.ShouldBe($"/games/{gameId}/users/{userId}/");
         result.Http.Method.ShouldBe(HttpMethod.Get);
         result.Http.StatusCode.ShouldBe(HttpStatusCode.OK);
-
-        result = GamesUsersEndpoints.GetUser(store, gameId, userId);
-        result.ShouldBeOfType<ApiResult<UserInformation>>();
         result.Value.ShouldNotBeNull();
         result.Value.UserId.ShouldBe(userId);
         result.Value.Name.ShouldBe("Bob");
@@ -231,6 +219,41 @@ public class GamesEndpointsTests
 
         result.Actions.ShouldContain(new KeyValuePair<string, Link>("Get game details", new Link($"/games/{gameId}/", HttpMethod.Get)));
     }
+    
+    [Fact]
+    public void GetUserInUnknownGame_Returns404()
+    {
+        var store = CreateGameStore();
+        var gameId = Guid.NewGuid();
+        var userId = Guid.NewGuid();
+        
+        var result = GamesUsersEndpoints.GetUser(store, gameId, userId).ShouldBeOfType<ApiError>();
+        
+        result.Http.Location.ShouldBe($"/games/{gameId}/users/{userId}/");
+        result.Http.Method.ShouldBe(HttpMethod.Get);
+        result.Http.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+        VerifyResultDoesNotContainValueProperty(result);
+        result.Errors.ShouldContain(e => e.Field == "GameId" && e.Message == "Game not found.");
+        result.Actions.ShouldContain(new KeyValuePair<string, Link>("Add game", new Link($"/games/", HttpMethod.Post)));
+    }
+    
+    [Fact]
+    public void GetUnknownUserInGame_Returns404()
+    {
+        var store = CreateGameStore();
+        var gameId =CreateGame(store);
+        var userId = Guid.NewGuid();
+        
+        var result = GamesUsersEndpoints.GetUser(store, gameId, userId).ShouldBeOfType<ApiError>();
+        
+        result.Http.Location.ShouldBe($"/games/{gameId}/users/{userId}/");
+        result.Http.Method.ShouldBe(HttpMethod.Get);
+        result.Http.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+        VerifyResultDoesNotContainValueProperty(result);
+        result.Errors.ShouldContain(e => e.Field == "UserId" && e.Message == "User not found.");
+        result.Actions.ShouldContain(new KeyValuePair<string, Link>("Get game details", new Link($"/games/{gameId}/", HttpMethod.Get)));
+        result.Actions.ShouldContain(new KeyValuePair<string, Link>("Add user", new Link($"/games/{gameId}/users/", HttpMethod.Post)));
+    }
 
     private static void VerifyResultDoesNotContainValueProperty(ApiResponse result)
     {
@@ -242,5 +265,11 @@ public class GamesEndpointsTests
     {
         var log = new CommandLog("Data Source=:memory:");
         return new GameStore(log);
+    }
+    
+    private static Guid CreateGame(GameStore store)
+    {
+        var game = GamesEndpoints.CreateGame(store);
+        return game.Value!.GameId;
     }
 }
