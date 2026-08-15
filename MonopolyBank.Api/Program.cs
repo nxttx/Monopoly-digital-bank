@@ -12,6 +12,7 @@ builder.Services.ConfigureHttpJsonOptions(o =>
     o.SerializerOptions.Converters.Add(new HttpMethodJsonConverter());
     o.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
 });
+builder.Services.Configure<RouteHandlerOptions>(o => o.ThrowOnBadRequest = true);
 builder.Services.AddOpenApi();
 builder.Services.AddSingleton(_ => new CommandLog(
     builder.Configuration.GetConnectionString("MonopolyBank") ?? "Data Source=monopolybank.db"));
@@ -19,6 +20,7 @@ builder.Services.AddSingleton<GameStore>();
 
 var app = builder.Build();
 
+app.UseBadRequestEnvelope();
 app.MapOpenApi();
 app.MapScalarApiReference();
 app.MapGet("/", () => Results.Redirect("/scalar"));
