@@ -1,6 +1,6 @@
 namespace MonopolyBank.Domain;
 
-public enum UserType
+public enum UserRole
 {
     Player,
     Banker,

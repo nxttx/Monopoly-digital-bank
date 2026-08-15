@@ -32,9 +32,9 @@ public class Tests
     [Fact]
     public void AUserCanBeAPlayerOrABankerOrBoth()
     {
-        User banker = new User("Mick", UserType.Banker);
+        User banker = new User("Mick", UserRole.Banker);
         User player = new User("Paul");
-        User both = new User("Bella", UserType.Both);
+        User both = new User("Bella", UserRole.Both);
 
         banker.ShouldNotBeNull();
         player.ShouldNotBeNull();
@@ -52,7 +52,7 @@ public class Tests
     [Fact]
     public void AUserShouldHaveARole()
     {
-        Should.Throw<ArgumentException>(() => new User("Jan", (UserType)999))
+        Should.Throw<ArgumentException>(() => new User("Jan", (UserRole)999))
             .Message.ShouldBe("Invalid user type.");
     }
 
@@ -61,7 +61,7 @@ public class Tests
     {
         var user1 = new User("Jan");
         var user2 = new User("Bob");
-        var banker = new User("Mick", UserType.Banker);
+        var banker = new User("Mick", UserRole.Banker);
 
         var game = new Game();
         game.AddUser(user1);
@@ -82,7 +82,7 @@ public class Tests
     [Fact]
     public void ABankerCanGiveMoneyToAnotherUser()
     {
-        var banker = new User("Mick", UserType.Banker);
+        var banker = new User("Mick", UserRole.Banker);
         var user = new User("Jan");
         var anotherUser = new User("Anne");
 
@@ -102,7 +102,7 @@ public class Tests
     [Fact]
     public void AUserWithRoleBothCanGiveMoneyAsABankerAndTransferMoneyAsAPlayer()
     {
-        var user = new User("Bella", UserType.Both);
+        var user = new User("Bella", UserRole.Both);
         var anotherUser = new User("Bob");
 
         var game = new Game();
@@ -127,7 +127,7 @@ public class Tests
     {
         var user = new User("Jan");
         var anotherUser = new User("Bob");
-        var banker = new User("Mick", UserType.Banker);
+        var banker = new User("Mick", UserRole.Banker);
 
         var game = new Game();
         game.AddUser(user);
@@ -146,7 +146,7 @@ public class Tests
     [Fact]
     public void ABankerWithoutPlayerRoleCannotGiveMoney()
     {
-        var banker = new User("Mick", UserType.Banker);
+        var banker = new User("Mick", UserRole.Banker);
         var anotherUser = new User("Bob");
         var thirdUser = new User("Anne");
 
@@ -168,8 +168,8 @@ public class Tests
     public void ThereShouldAlwaysOnlyBeOneBanker()
     {
         var game = new Game();
-        var banker1 = new User("Mick", UserType.Banker);
-        var banker2 = new User("Ben", UserType.Banker);
+        var banker1 = new User("Mick", UserRole.Banker);
+        var banker2 = new User("Ben", UserRole.Banker);
         var player = new User("Paul");
         var player2 = new User("Anne");
 
@@ -194,7 +194,7 @@ public class Tests
     {
         var user1 = new User("Jan");
         var user2 = new User("Bob");
-        var banker = new User("Mick", UserType.Banker);
+        var banker = new User("Mick", UserRole.Banker);
 
         var game = new Game();
         game.AddUser(user1);
@@ -214,7 +214,7 @@ public class Tests
     [Fact]
     public void ABankerCanTakeMoneyFromAnotherPlayer()
     {
-        var banker = new User("Mick", UserType.Banker);
+        var banker = new User("Mick", UserRole.Banker);
         var user = new User("Jan");
         var anotherUser = new User("Anne");
 
@@ -234,7 +234,7 @@ public class Tests
     {
         var user = new User("Jan");
         var anotherUser = new User("Bob");
-        var banker = new User("Mick", UserType.Banker);
+        var banker = new User("Mick", UserRole.Banker);
 
         var game = new Game();
         game.AddUser(user);
@@ -254,7 +254,7 @@ public class Tests
     [Fact]
     public void ABankerCannotTakeMoreMoneyThanTheyPlayerHas()
     {
-        var banker = new User("Mick", UserType.Banker);
+        var banker = new User("Mick", UserRole.Banker);
         var user = new User("Jan");
         var anotherUser = new User("Anne");
 
@@ -288,7 +288,7 @@ public class Tests
     [Fact]
     public void AUserCannotTransferMoneyToAnotherUserFromAnotherGameWithBankerRole()
     {
-        var user = new User("Mick", UserType.Banker);
+        var user = new User("Mick", UserRole.Banker);
         var anotherUser = new User("Bob");
 
         var game1 = new Game();
@@ -362,7 +362,7 @@ public class Tests
         game.Users.Count.ShouldBe(2);
         Should.Throw<AmountOfPlayersException>(() => game.Start())
             .Message.ShouldBe("A game requires at least one banker and two players.");
-        game.AddUser(new User("Mick", UserType.Banker));
+        game.AddUser(new User("Mick", UserRole.Banker));
         game.Users.Count.ShouldBe(3);
         game.Start();
     }
@@ -372,7 +372,7 @@ public class Tests
     {
         var user1 = new User("Jan");
         var user2 = new User("Bob");
-        var banker = new User("Mick", UserType.Banker);
+        var banker = new User("Mick", UserRole.Banker);
 
         Should.Throw<GameNotStartedException>(() => user1.Player.TransferMoney(user2.Player, 100))
             .Message.ShouldBe("Cannot transfer money before the game has started.");
@@ -397,7 +397,7 @@ public class Tests
     {
         var user1 = new User("Jan");
         var user2 = new User("Bob");
-        var banker = new User("Mick", UserType.Banker);
+        var banker = new User("Mick", UserRole.Banker);
 
         Should.Throw<GameNotStartedException>(() => banker.Banker.TransferMoney(user1.Player, 100))
             .Message.ShouldBe("Cannot transfer money before the game has started.");
@@ -421,7 +421,7 @@ public class Tests
     {
         var user = new User("Jan");
         var anotherUser = new User("Bob");
-        var banker = new User("Mick", UserType.Banker);
+        var banker = new User("Mick", UserRole.Banker);
         var game = new Game();
         game.AddUser(user);
         game.AddUser(anotherUser);
@@ -448,7 +448,7 @@ public class Tests
     {
         var user = new User("Jan");
         var anotherUser = new User("Bob");
-        var banker = new User("Mick", UserType.Banker);
+        var banker = new User("Mick", UserRole.Banker);
         var game = new Game();
         game.AddUser(user);
         game.AddUser(anotherUser);
@@ -469,7 +469,7 @@ public class Tests
     {
         var jan = new User("Jan");
         var bob = new User("Bob");
-        var banker = new User("Mick", UserType.Banker);
+        var banker = new User("Mick", UserRole.Banker);
         var game = new Game();
         game.AddUser(jan);
         game.AddUser(bob);
@@ -495,7 +495,7 @@ public class Tests
     {
         var user = new User("Jan");
         var anotherUser = new User("Bob");
-        var banker = new User("Mick", UserType.Banker);
+        var banker = new User("Mick", UserRole.Banker);
         var game = new Game();
         game.AddUser(user);
         game.AddUser(anotherUser);
@@ -510,7 +510,7 @@ public class Tests
     {
         var user = new User("Jan");
         var anotherUser = new User("Bob");
-        var banker = new User("Mick", UserType.Banker);
+        var banker = new User("Mick", UserRole.Banker);
         var game = new Game();
         game.AddUser(user);
         game.AddUser(anotherUser);
@@ -526,7 +526,7 @@ public class Tests
     {
         var user = new User("Jan");
         var anotherUser = new User("Bob");
-        var banker = new User("Mick", UserType.Banker);
+        var banker = new User("Mick", UserRole.Banker);
         var game = new Game();
         game.AddUser(user);
         game.AddUser(anotherUser);
@@ -548,7 +548,7 @@ public class Tests
     {
         var user = new User("Jan");
         var anotherUser = new User("Bob");
-        var banker = new User("Mick", UserType.Banker);
+        var banker = new User("Mick", UserRole.Banker);
         var game = new Game();
         game.AddUser(user);
         game.AddUser(anotherUser);
@@ -567,7 +567,7 @@ public class Tests
     {
         var user = new User("Jan");
         var anotherUser = new User("Bob");
-        var banker = new User("Mick", UserType.Banker);
+        var banker = new User("Mick", UserRole.Banker);
         var game = new Game();
         game.AddUser(user);
         game.AddUser(anotherUser);
@@ -598,7 +598,7 @@ public class Tests
     {
         var user = new User("Jan");
         var anotherUser = new User("Bob");
-        var banker = new User("Mick", UserType.Banker);
+        var banker = new User("Mick", UserRole.Banker);
         var game = new Game();
         game.AddUser(user);
         game.AddUser(anotherUser);
@@ -618,7 +618,7 @@ public class Tests
     {
         var user = new User("Jan");
         var anotherUser = new User("Bob");
-        var banker = new User("Mick", UserType.Banker);
+        var banker = new User("Mick", UserRole.Banker);
         var game = new Game();
         game.AddUser(user);
         game.AddUser(anotherUser);
@@ -640,7 +640,7 @@ public class Tests
     [Fact]
     public void TheGameMustKnowWhatTheCurrencyOfTheMoneyIs()
     {
-        var banker = new User("Mick", UserType.Banker);
+        var banker = new User("Mick", UserRole.Banker);
         var game = new Game();
         game.AddUser(new User("Jan"));
         game.AddUser(new User("Bob"));

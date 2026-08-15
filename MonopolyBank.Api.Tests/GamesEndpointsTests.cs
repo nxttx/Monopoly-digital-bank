@@ -104,7 +104,7 @@ public class GamesEndpointsTests
         var game = GamesEndpoints.CreateGame(store);
         var gameId = game.Value!.GameId;
 
-        var result = GamesUsersEndpoints.CreateUser(store, gameId, new CreateUserRequest("Robert", UserType.Banker.ToString()))
+        var result = GamesUsersEndpoints.CreateUser(store, gameId, new CreateUserRequest("Robert", UserRole.Banker.ToString()))
             .ShouldBeOfType<ApiResult<UserCreated>>();
 
         result.Http.Location.ShouldBe($"/games/{gameId}/users/");
@@ -127,11 +127,11 @@ public class GamesEndpointsTests
         var store = CreateGameStore();
         var game = GamesEndpoints.CreateGame(store);
         var gameId = game.Value!.GameId;
-        var banker = GamesUsersEndpoints.CreateUser(store, gameId, new CreateUserRequest("Robert", UserType.Both.ToString()))
+        var banker = GamesUsersEndpoints.CreateUser(store, gameId, new CreateUserRequest("Robert", UserRole.Both.ToString()))
             .ShouldBeOfType<ApiResult<UserCreated>>();
-        var player = GamesUsersEndpoints.CreateUser(store, gameId, new CreateUserRequest("Bob", UserType.Player.ToString()))
+        var player = GamesUsersEndpoints.CreateUser(store, gameId, new CreateUserRequest("Bob", UserRole.Player.ToString()))
             .ShouldBeOfType<ApiResult<UserCreated>>();
-        var player2 = GamesUsersEndpoints.CreateUser(store, gameId, new CreateUserRequest("Allice", UserType.Player.ToString()))
+        var player2 = GamesUsersEndpoints.CreateUser(store, gameId, new CreateUserRequest("Allice", UserRole.Player.ToString()))
             .ShouldBeOfType<ApiResult<UserCreated>>();
 
         var result = GamesEndpoints.GetGame(store, gameId).ShouldBeOfType<ApiResult<GameDetails>>();
@@ -142,10 +142,10 @@ public class GamesEndpointsTests
         
         result.Value.ShouldNotBeNull();
         result.Value.GameId.ShouldBe(gameId);
-        result.Value.Users.ShouldContain(u => u.UserId == banker.Value.UserId && u.Name == banker.Value.Name && u.Type == banker.Value.Type);
-        
-        result.Value.Users.ShouldContain(u => u.UserId == player.Value.UserId && u.Name == player.Value.Name && u.Type == player.Value.Type);
-        result.Value.Users.ShouldContain(u => u.UserId == player2.Value.UserId && u.Name == player2.Value.Name && u.Type == player2.Value.Type);
+        result.Value.Users.ShouldContain(u => u.UserId == banker.Value.UserId && u.Name == banker.Value.Name && u.Role == banker.Value.Role);
+
+        result.Value.Users.ShouldContain(u => u.UserId == player.Value.UserId && u.Name == player.Value.Name && u.Role == player.Value.Role);
+        result.Value.Users.ShouldContain(u => u.UserId == player2.Value.UserId && u.Name == player2.Value.Name && u.Role == player2.Value.Role);
         result.Value.Currency.ShouldBe(Currencies.Monopolonian);
         result.Value.Started.ShouldBe(false);
         result.Value.DefaultStartAmount.ShouldBe(1500);
@@ -163,7 +163,7 @@ public class GamesEndpointsTests
         var game = GamesEndpoints.CreateGame(store);
         var gameId = game.Value!.GameId;
     
-        var result = GamesUsersEndpoints.CreateUser(store, gameId, new CreateUserRequest("", UserType.Banker.ToString()))
+        var result = GamesUsersEndpoints.CreateUser(store, gameId, new CreateUserRequest("", UserRole.Banker.ToString()))
             .ShouldBeOfType<ApiError>();
 
         result.Http.Location.ShouldBe($"/games/{gameId}/users/");
@@ -190,7 +190,7 @@ public class GamesEndpointsTests
         result.Http.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
         VerifyResultDoesNotContainValueProperty(result);
 
-        result.Errors.ShouldContain(e => e.Field == "Role" && e.Message == $"Role must be one of the following: {string.Join(", ", Enum.GetNames(typeof(UserType)))}.");
+        result.Errors.ShouldContain(e => e.Field == "Role" && e.Message == $"Role must be one of the following: {string.Join(", ", Enum.GetNames(typeof(UserRole)))}.");
         result.Actions.ShouldContain(new KeyValuePair<string, Link>("Add user", new Link($"/games/{gameId}/users/", HttpMethod.Post)));
     }
 

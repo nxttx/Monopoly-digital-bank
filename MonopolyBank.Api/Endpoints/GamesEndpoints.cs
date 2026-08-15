@@ -54,7 +54,7 @@ public static class GamesEndpoints
                 new Dictionary<string, Link> { ["Add game"] = new("/games/", HttpMethod.Post) });
 
         var users = store.UsersOf(gameId)
-            .Select(u => new UserSummary(u.UserId, u.Name, u.Type))
+            .Select(u => new UserSummary(u.UserId, u.Name, u.Role))
             .ToList();
 
         return new ApiResult<GameDetails>(
@@ -65,7 +65,7 @@ public static class GamesEndpoints
                 game.Currency,
                 game.Started,
                 Game.DefaultStartAmount,
-                users.FirstOrDefault(u => u.Type is UserType.Banker or UserType.Both)),
+                users.FirstOrDefault(u => u.Role is UserRole.Banker or UserRole.Both)),
             new Dictionary<string, Link> { ["Add user"] = new($"/games/{gameId}/users/", HttpMethod.Post) });
     }
 }
@@ -82,4 +82,4 @@ public record GameDetails(
     int DefaultStartAmount,
     UserSummary? BankerUser);
 
-public record UserSummary(Guid UserId, string Name, UserType Type);
+public record UserSummary(Guid UserId, string Name, UserRole Role);

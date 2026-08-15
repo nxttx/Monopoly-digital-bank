@@ -2,13 +2,13 @@ namespace MonopolyBank.Domain;
 
 public class User
 {
-    public User(string name, UserType type = UserType.Player)
+    public User(string name, UserRole role = UserRole.Player)
     {
-        if (!Enum.IsDefined(type))
+        if (!Enum.IsDefined(role))
             throw new ArgumentException("Invalid user type.");
 
-        IsPlayer = type is UserType.Player or UserType.Both;
-        IsBanker = type is UserType.Banker or UserType.Both;
+        IsPlayer = role is UserRole.Player or UserRole.Both;
+        IsBanker = role is UserRole.Banker or UserRole.Both;
         Player = new Player(name, IsPlayer);
         Banker = new Banker(IsBanker);
     }

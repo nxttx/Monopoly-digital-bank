@@ -65,8 +65,8 @@ public class GameStore(CommandLog log)
     {
         switch (command)
         {
-            case GameCommand.AddUser(_, var name, var type):
-                game.AddUser(new User(name, type));
+            case GameCommand.AddUser(_, var name, var role):
+                game.AddUser(new User(name, role));
                 break;
             case GameCommand.SetStartAmount(var amount):
                 BankerOf(game).SetStartAmount(amount);

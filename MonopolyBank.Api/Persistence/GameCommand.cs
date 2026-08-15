@@ -11,7 +11,7 @@ public abstract record GameCommand
 {
     public sealed record CreateGame : GameCommand;
 
-    public sealed record AddUser(Guid UserId, string Name, UserType Type) : GameCommand;
+    public sealed record AddUser(Guid UserId, string Name, UserRole Role) : GameCommand;
 
     public sealed record SetStartAmount(int Amount) : GameCommand;
 

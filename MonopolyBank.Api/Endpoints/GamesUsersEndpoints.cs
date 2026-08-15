@@ -16,16 +16,16 @@ public static class GamesUsersEndpoints
 
     public static ApiResponse CreateUser(GameStore store, Guid gameId, CreateUserRequest request)
     {
-        if (!Enum.TryParse<UserType>(request.Role, out var type) || !Enum.IsDefined(type))
+        if (!Enum.TryParse<UserRole>(request.Role, out var role) || !Enum.IsDefined(role))
             return new ApiError(
                 new HttpCall($"/games/{gameId}/users/", HttpMethod.Post, HttpStatusCode.BadRequest),
-                [new FieldError("Role", $"Role must be one of the following: {string.Join(", ", Enum.GetNames<UserType>())}.")],
+                [new FieldError("Role", $"Role must be one of the following: {string.Join(", ", Enum.GetNames<UserRole>())}.")],
                 new Dictionary<string, Link> { ["Add user"] = new($"/games/{gameId}/users/", HttpMethod.Post) });
 
         var userId = Guid.NewGuid();
         try
         {
-            store.Execute(gameId, new GameCommand.AddUser(userId, request.Name, type));
+            store.Execute(gameId, new GameCommand.AddUser(userId, request.Name, role));
         }
         catch (ArgumentException e)
         {
@@ -37,11 +37,11 @@ public static class GamesUsersEndpoints
 
         return new ApiResult<UserCreated>(
             new HttpCall($"/games/{gameId}/users/", HttpMethod.Post, HttpStatusCode.Created),
-            new UserCreated(userId, gameId, request.Name, type),
+            new UserCreated(userId, gameId, request.Name, role),
             new Dictionary<string, Link> { ["Get details"] = new($"/games/{gameId}/", HttpMethod.Get) });
     }
 }
 
 public record CreateUserRequest(string Name, string Role);
 
-public record UserCreated(Guid UserId, Guid GameId, string Name, UserType Type);
+public record UserCreated(Guid UserId, Guid GameId, string Name, UserRole Role);
