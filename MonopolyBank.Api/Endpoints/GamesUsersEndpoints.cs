@@ -35,6 +35,10 @@ public static class GamesUsersEndpoints
         {
             return BadRequest(new FieldError("Name", e.Message));
         }
+        catch (DuplicateBankerException)
+        {
+            return BadRequest(new FieldError("Role", "Only one banker can be added to a game."));
+        }
 
         return new ApiResult<UserCreated>(
             new HttpCall(location, HttpMethod.Post, HttpStatusCode.Created),

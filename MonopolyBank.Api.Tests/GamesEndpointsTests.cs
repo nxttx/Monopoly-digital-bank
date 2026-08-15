@@ -254,9 +254,28 @@ public class GamesEndpointsTests
         result.Actions.ShouldContain(new KeyValuePair<string, Link>("Get game details", new Link($"/games/{gameId}/", HttpMethod.Get)));
         result.Actions.ShouldContain(new KeyValuePair<string, Link>("Add user", new Link($"/games/{gameId}/users/", HttpMethod.Post)));
     }
-    
-    // adding two bankers results in a 500 
-    
+
+    [Theory]
+    [InlineData(UserRole.Banker)]
+    [InlineData(UserRole.Both)]
+    public void AddTwoBankersToGame_ShouldReturnError(UserRole role)
+    { 
+        var store = CreateGameStore();
+        var gameId =CreateGame(store);
+        
+        GamesUsersEndpoints.CreateUser(store, gameId, new CreateUserRequest("Bob", nameof(UserRole.Banker))).ShouldBeOfType<ApiResult<UserCreated>>();
+
+        var result = GamesUsersEndpoints.CreateUser(store, gameId, new CreateUserRequest("Mick", role.ToString()))
+            .ShouldBeOfType<ApiError>();
+        
+        result.Http.Location.ShouldBe($"/games/{gameId}/users/");
+        result.Http.Method.ShouldBe(HttpMethod.Post);
+        result.Http.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+        VerifyResultDoesNotContainValueProperty(result);
+        result.Errors.ShouldContain(e => e.Field == "Role" && e.Message == "Only one banker can be added to a game.");
+        result.Actions.ShouldContain(new KeyValuePair<string, Link>("Add user", new Link($"/games/{gameId}/users/", HttpMethod.Post)));
+    }
+
 
     private static void VerifyResultDoesNotContainValueProperty(ApiResponse result)
     {
