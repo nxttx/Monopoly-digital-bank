@@ -17,9 +17,11 @@ public static class GamesUsersEndpoints
     public static ApiResponse CreateUser(GameStore store, Guid gameId, CreateUserRequest request)
     {
         var userId = Guid.NewGuid();
+        UserType type;
         try
         {
-            store.Execute(gameId, new GameCommand.AddUser(userId, request.Name, request.Type));
+            type = Enum.Parse<UserType>(request.Type);
+            store.Execute(gameId, new GameCommand.AddUser(userId, request.Name, type));
         }
         catch (ArgumentException e)
         {
@@ -31,11 +33,11 @@ public static class GamesUsersEndpoints
 
         return new ApiResult<UserCreated>(
             new HttpCall($"/games/{gameId}/users/", HttpMethod.Post, HttpStatusCode.Created),
-            new UserCreated(userId, gameId, request.Name, request.Type),
+            new UserCreated(userId, gameId, request.Name, type),
             new Dictionary<string, Link> { ["Get details"] = new($"/games/{gameId}/", HttpMethod.Get) });
     }
 }
 
-public record CreateUserRequest(string Name, UserType Type);
+public record CreateUserRequest(string Name, string Type);
 
 public record UserCreated(Guid UserId, Guid GameId, string Name, UserType Type);

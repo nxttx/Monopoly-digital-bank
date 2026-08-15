@@ -104,7 +104,7 @@ public class GamesEndpointsTests
         var game = GamesEndpoints.CreateGame(store);
         var gameId = game.Value!.GameId;
 
-        var result = GamesUsersEndpoints.CreateUser(store, gameId, new CreateUserRequest("Robert", UserType.Banker))
+        var result = GamesUsersEndpoints.CreateUser(store, gameId, new CreateUserRequest("Robert", UserType.Banker.ToString()))
             .ShouldBeOfType<ApiResult<UserCreated>>();
 
         result.Http.Location.ShouldBe($"/games/{gameId}/users/");
@@ -127,11 +127,11 @@ public class GamesEndpointsTests
         var store = CreateGameStore();
         var game = GamesEndpoints.CreateGame(store);
         var gameId = game.Value!.GameId;
-        var banker = GamesUsersEndpoints.CreateUser(store, gameId, new CreateUserRequest("Robert", UserType.Both))
+        var banker = GamesUsersEndpoints.CreateUser(store, gameId, new CreateUserRequest("Robert", UserType.Both.ToString()))
             .ShouldBeOfType<ApiResult<UserCreated>>();
-        var player = GamesUsersEndpoints.CreateUser(store, gameId, new CreateUserRequest("Bob", UserType.Player))
+        var player = GamesUsersEndpoints.CreateUser(store, gameId, new CreateUserRequest("Bob", UserType.Player.ToString()))
             .ShouldBeOfType<ApiResult<UserCreated>>();
-        var player2 = GamesUsersEndpoints.CreateUser(store, gameId, new CreateUserRequest("Allice", UserType.Player))
+        var player2 = GamesUsersEndpoints.CreateUser(store, gameId, new CreateUserRequest("Allice", UserType.Player.ToString()))
             .ShouldBeOfType<ApiResult<UserCreated>>();
 
         var result = GamesEndpoints.GetGame(store, gameId).ShouldBeOfType<ApiResult<GameDetails>>();
@@ -163,7 +163,7 @@ public class GamesEndpointsTests
         var game = GamesEndpoints.CreateGame(store);
         var gameId = game.Value!.GameId;
     
-        var result = GamesUsersEndpoints.CreateUser(store, gameId, new CreateUserRequest("", UserType.Banker))
+        var result = GamesUsersEndpoints.CreateUser(store, gameId, new CreateUserRequest("", UserType.Banker.ToString()))
             .ShouldBeOfType<ApiError>();
 
         result.Http.Location.ShouldBe($"/games/{gameId}/users/");
