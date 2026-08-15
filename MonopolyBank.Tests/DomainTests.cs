@@ -367,7 +367,6 @@ public class Tests
         game.Start();
     }
     
-    // TODO RB 16/08/2026 01:07: test for Game.Start() having no already-started guard. 
     [Fact]
     public void AGameShouldNotBeStartedTwice()
     {
@@ -381,7 +380,6 @@ public class Tests
         Should.Throw<AlreadyStartedGameException>(() => game.Start())
             .Message.ShouldBe("Game already started.");
     }
-    
 
     [Fact]
     public void APlayerCannotTransferMoneyBeforeTheGameHasStarted()
