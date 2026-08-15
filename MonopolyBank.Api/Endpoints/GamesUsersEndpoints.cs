@@ -12,6 +12,9 @@ public static class GamesUsersEndpoints
                 CreateUser(store, gameId, request).ToHttpResult())
             .Produces<ApiResult<UserCreated>>(StatusCodes.Status201Created)
             .Produces<ApiError>(StatusCodes.Status400BadRequest);
+        app.MapGet("/games/{gameId:guid}/users/{userId:guid}", (GameStore store, Guid gameId, Guid userId) =>
+                GetUser(store, gameId, userId).ToHttpResult())
+            .Produces<ApiResult<UserInformation>>();
     }
 
     public static ApiResponse CreateUser(GameStore store, Guid gameId, CreateUserRequest request)
@@ -35,15 +38,36 @@ public static class GamesUsersEndpoints
         return new ApiResult<UserCreated>(
             new HttpCall(location, HttpMethod.Post, HttpStatusCode.Created),
             new UserCreated(userId, gameId, request.Name, role),
-            new Dictionary<string, Link> { ["Get details"] = new(ApiRoutes.Game(gameId), HttpMethod.Get) });
+            new Dictionary<string, Link>
+            {
+                ["Get game details"] = new(ApiRoutes.Game(gameId), HttpMethod.Get),
+                ["Get user details"] = new(ApiRoutes.GameUser(gameId, userId), HttpMethod.Get),
+            });
 
         ApiError BadRequest(FieldError error) => new(
             new HttpCall(location, HttpMethod.Post, HttpStatusCode.BadRequest),
             [error],
             new Dictionary<string, Link> { ["Add user"] = new(location, HttpMethod.Post) });
     }
+
+    public static ApiResult<UserInformation> GetUser(GameStore store, Guid gameId, Guid userId)
+    {
+        // The Nth AddUser command corresponds to the Nth game user (only successful
+        // adds are logged, in order), so this join stays exact even with duplicate names.
+        var added = store.UsersOf(gameId);
+        var index = added.TakeWhile(u => u.UserId != userId).Count();
+        var user = added[index];
+        var player = store.Find(gameId)!.Users.ElementAt(index).Player;
+
+        return new ApiResult<UserInformation>(
+            new HttpCall(ApiRoutes.GameUser(gameId, userId), HttpMethod.Get, HttpStatusCode.OK),
+            new UserInformation(userId, user.Name, user.Role, player.Money, player.BankCard, gameId),
+            new Dictionary<string, Link> { ["Get game details"] = new(ApiRoutes.Game(gameId), HttpMethod.Get) });
+    }
 }
 
 public record CreateUserRequest(string Name, string Role);
 
 public record UserCreated(Guid UserId, Guid GameId, string Name, UserRole Role);
+
+public record UserInformation(Guid UserId, string Name, UserRole Role, int Balance, BankCard BankCard, Guid GameId);

@@ -55,7 +55,11 @@ public static class GamesEndpoints
                 new Dictionary<string, Link> { ["Add game"] = new(ApiRoutes.Games, HttpMethod.Post) });
 
         var users = store.UsersOf(gameId)
-            .Select(u => new UserSummary(u.UserId, u.Name, u.Role))
+            .Select(u => new UserSummary(
+                u.UserId,
+                u.Name,
+                u.Role,
+                new Dictionary<string, Link> { ["Get user details"] = new(ApiRoutes.GameUser(gameId, u.UserId), HttpMethod.Get) }))
             .ToList();
 
         return new ApiResult<GameDetails>(
@@ -83,4 +87,4 @@ public record GameDetails(
     int DefaultStartAmount,
     UserSummary? BankerUser);
 
-public record UserSummary(Guid UserId, string Name, UserRole Role);
+public record UserSummary(Guid UserId, string Name, UserRole Role, Dictionary<string, Link> Actions);

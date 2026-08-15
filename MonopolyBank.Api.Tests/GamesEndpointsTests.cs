@@ -104,7 +104,7 @@ public class GamesEndpointsTests
         var game = GamesEndpoints.CreateGame(store);
         var gameId = game.Value!.GameId;
 
-        var result = GamesUsersEndpoints.CreateUser(store, gameId, new CreateUserRequest("Robert", UserRole.Banker.ToString()))
+        var result = GamesUsersEndpoints.CreateUser(store, gameId, new CreateUserRequest("Robert", nameof(UserRole.Banker)))
             .ShouldBeOfType<ApiResult<UserCreated>>();
 
         result.Http.Location.ShouldBe($"/games/{gameId}/users/");
@@ -115,7 +115,8 @@ public class GamesEndpointsTests
         result.Value.UserId.ShouldNotBe(Guid.Empty);
         result.Value.GameId.ShouldBe(gameId);
         
-        result.Actions.ShouldContain(new KeyValuePair<string, Link>("Get details", new Link($"/games/{gameId}/", HttpMethod.Get)));
+        result.Actions.ShouldContain(new KeyValuePair<string, Link>("Get game details", new Link($"/games/{gameId}/", HttpMethod.Get)));
+        result.Actions.ShouldContain(new KeyValuePair<string, Link>("Get user details", new Link($"/games/{gameId}/users/{result.Value!.UserId}/", HttpMethod.Get)));
         
         var storedGame = store.Find(gameId).ShouldNotBeNull();
         storedGame.Users.ShouldContain(u => u.Player.Name == "Robert");
@@ -142,15 +143,20 @@ public class GamesEndpointsTests
         
         result.Value.ShouldNotBeNull();
         result.Value.GameId.ShouldBe(gameId);
-        result.Value.Users.ShouldContain(u => u.UserId == banker.Value.UserId && u.Name == banker.Value.Name && u.Role == banker.Value.Role);
+        result.Value.Users.ShouldContain(u => u.UserId == banker.Value!.UserId && u.Name == banker.Value.Name && u.Role == banker.Value.Role);
+        result.Value.Users.First().Actions.ShouldContain(new KeyValuePair<string, Link>("Get user details", new Link($"/games/{gameId}/users/{banker.Value!.UserId}/", HttpMethod.Get)));
 
-        result.Value.Users.ShouldContain(u => u.UserId == player.Value.UserId && u.Name == player.Value.Name && u.Role == player.Value.Role);
-        result.Value.Users.ShouldContain(u => u.UserId == player2.Value.UserId && u.Name == player2.Value.Name && u.Role == player2.Value.Role);
+        result.Value.Users.ShouldContain(u => u.UserId == player.Value!.UserId && u.Name == player.Value.Name && u.Role == player.Value.Role);
+        result.Value.Users[1].Actions.ShouldContain(new KeyValuePair<string, Link>("Get user details", new Link($"/games/{gameId}/users/{player.Value!.UserId}/", HttpMethod.Get)));
+        
+        result.Value.Users.ShouldContain(u => u.UserId == player2.Value!.UserId && u.Name == player2.Value.Name && u.Role == player2.Value.Role);
+        result.Value.Users.Last().Actions.ShouldContain(new KeyValuePair<string, Link>("Get user details", new Link($"/games/{gameId}/users/{player2.Value!.UserId}/", HttpMethod.Get)));
+        
         result.Value.Currency.ShouldBe(Currencies.Monopolonian);
         result.Value.Started.ShouldBe(false);
         result.Value.DefaultStartAmount.ShouldBe(1500);
         result.Value.BankerUser.ShouldNotBeNull();
-        result.Value.BankerUser.UserId.ShouldBe(banker.Value.UserId);
+        result.Value.BankerUser.UserId.ShouldBe(banker.Value!.UserId);
         result.Value.BankerUser.Name.ShouldBe(banker.Value.Name);
 
         result.Actions.ShouldContain(new KeyValuePair<string, Link>("Add user", new Link($"/games/{gameId}/users/", HttpMethod.Post)));
@@ -163,7 +169,7 @@ public class GamesEndpointsTests
         var game = GamesEndpoints.CreateGame(store);
         var gameId = game.Value!.GameId;
     
-        var result = GamesUsersEndpoints.CreateUser(store, gameId, new CreateUserRequest("", UserRole.Banker.ToString()))
+        var result = GamesUsersEndpoints.CreateUser(store, gameId, new CreateUserRequest("", nameof(UserRole.Banker)))
             .ShouldBeOfType<ApiError>();
 
         result.Http.Location.ShouldBe($"/games/{gameId}/users/");
@@ -192,6 +198,38 @@ public class GamesEndpointsTests
 
         result.Errors.ShouldContain(e => e.Field == "Role" && e.Message == $"Role must be one of the following: {string.Join(", ", Enum.GetNames(typeof(UserRole)))}.");
         result.Actions.ShouldContain(new KeyValuePair<string, Link>("Add user", new Link($"/games/{gameId}/users/", HttpMethod.Post)));
+    }
+
+    [Fact]
+    public void GetUser_ReturnsUserWithTheCorrectIdAndInfo()
+    {
+        var store = CreateGameStore();
+        var game = GamesEndpoints.CreateGame(store);
+        var gameId = game.Value!.GameId;
+
+        var user =
+            GamesUsersEndpoints.CreateUser(store, gameId, new CreateUserRequest("Bob", nameof(UserRole.Player))).ShouldBeOfType<ApiResult<UserCreated>>();
+        var userId = user.Value!.UserId;
+        
+        var result = GamesUsersEndpoints.GetUser(store, gameId, userId).ShouldBeOfType<ApiResult<UserInformation>>();
+        
+        result.Http.Location.ShouldBe($"/games/{gameId}/users/{userId}/");
+        result.Http.Method.ShouldBe(HttpMethod.Get);
+        result.Http.StatusCode.ShouldBe(HttpStatusCode.OK);
+
+        result = GamesUsersEndpoints.GetUser(store, gameId, userId);
+        result.ShouldBeOfType<ApiResult<UserInformation>>();
+        result.Value.ShouldNotBeNull();
+        result.Value.UserId.ShouldBe(userId);
+        result.Value.Name.ShouldBe("Bob");
+        result.Value.Role.ShouldBe(UserRole.Player);
+        result.Value.Balance.ShouldBe(1500);
+        result.Value.BankCard.Number.ShouldNotBeNullOrEmpty();
+        result.Value.BankCard.Expiry.ShouldBeGreaterThan(DateTime.Now);
+        result.Value.BankCard.Cvv.ShouldNotBeNullOrEmpty();
+        result.Value.GameId.ShouldBe(gameId);
+
+        result.Actions.ShouldContain(new KeyValuePair<string, Link>("Get game details", new Link($"/games/{gameId}/", HttpMethod.Get)));
     }
 
     private static void VerifyResultDoesNotContainValueProperty(ApiResponse result)
