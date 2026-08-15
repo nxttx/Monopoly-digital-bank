@@ -49,6 +49,7 @@ public class JwtTests
     [InlineData("none")]
     [InlineData("")]
     [InlineData(null)]
+    [InlineData(" ")]
     public void AlgCanNotBeNone(string? alg)
     {
         var headerAlg = alg;
@@ -60,6 +61,6 @@ public class JwtTests
         };
         var secret = "ThisIsAVerySafeSecret_q2o3789pbyrp";
         Should.Throw<ArgumentException>(() => JwtService.GenerateJwt(headerAlg, headerTyp, payload, secret))
-            .Message.ShouldBe("Alg cannot be null.");
+            .Message.ShouldBe("Alg cannot be null, empty, whitespace or \"none\".");
     }
 }
