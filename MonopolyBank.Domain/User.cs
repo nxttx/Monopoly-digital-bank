@@ -4,6 +4,9 @@ public class User
 {
     public User(string name, UserType type = UserType.Player)
     {
+        if (!Enum.IsDefined(type))
+            throw new ArgumentException("Invalid user type.");
+
         IsPlayer = type is UserType.Player or UserType.Both;
         IsBanker = type is UserType.Banker or UserType.Both;
         Player = new Player(name, IsPlayer);

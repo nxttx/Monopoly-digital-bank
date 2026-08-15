@@ -49,6 +49,12 @@ public class Tests
         both.IsPlayer.ShouldBeTrue();
         both.IsBanker.ShouldBeTrue();
     }
+    [Fact]
+    public void AUserShouldHaveARole()
+    {
+        Should.Throw<ArgumentException>(() => new User("Jan", (UserType)999))
+            .Message.ShouldBe("Invalid user type.");
+    }
 
     [Fact]
     public void AnUserCanTransferMoneyToAnotherUser()
