@@ -23,21 +23,8 @@ app.MapOpenApi();
 app.MapScalarApiReference();
 app.MapGet("/", () => Results.Redirect("/scalar"));
 
-// Route registrations go here, one per user-tested handler.
-app.MapGet("/health", () => Results.Ok(new { status = "healthy" })); // temporary scaffold check
-app.MapPost("/games", (GameStore store) =>
-        GamesEndpoints.CreateGame(store).ToHttpResult())
-    .Produces<ApiResult<GameCreated>>(StatusCodes.Status201Created);
-app.MapGet("/games", (GameStore store) =>
-        GamesEndpoints.GetAllGames(store).ToHttpResult())
-    .Produces<ApiResult<IReadOnlyList<GameSummary>>>();
-app.MapGet("/games/{gameId:guid}", (GameStore store, Guid gameId) =>
-        GamesEndpoints.GetGame(store, gameId).ToHttpResult())
-    .Produces<ApiResult<GameDetails>>()
-    .Produces<ApiResult<GameDetails>>(StatusCodes.Status404NotFound);
-app.MapPost("/games/{gameId:guid}/users", (GameStore store, Guid gameId, CreateUserRequest request) =>
-        GamesEndpoints.CreateUser(store, gameId, request).ToHttpResult())
-    .Produces<ApiResult<UserCreated>>(StatusCodes.Status201Created);
+GamesEndpoints.RegisterApiRoutes(app);
+GamesUsersEndpoints.RegisterApiRoutes(app);
 
 app.Run();
 

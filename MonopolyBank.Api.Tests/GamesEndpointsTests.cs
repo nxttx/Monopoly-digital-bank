@@ -103,7 +103,7 @@ public class GamesEndpointsTests
         var game = GamesEndpoints.CreateGame(store);
         var gameId = game.Value!.GameId;
 
-        var result = GamesEndpoints.CreateUser(store, gameId, new CreateUserRequest("Robert", UserType.Banker));
+        var result = GamesUsersEndpoints.CreateUser(store, gameId, new CreateUserRequest("Robert", UserType.Banker));
         
         result.Http.Location.ShouldBe($"/games/{gameId}/users/");
         result.Http.Method.ShouldBe(HttpMethod.Post);
@@ -125,9 +125,9 @@ public class GamesEndpointsTests
         var store = CreateGameStore();
         var game = GamesEndpoints.CreateGame(store);
         var gameId = game.Value!.GameId;
-        var banker = GamesEndpoints.CreateUser(store, gameId, new CreateUserRequest("Robert", UserType.Both));
-        var player = GamesEndpoints.CreateUser(store, gameId, new CreateUserRequest("Bob", UserType.Player));
-        var player2 = GamesEndpoints.CreateUser(store, gameId, new CreateUserRequest("Allice", UserType.Player));
+        var banker = GamesUsersEndpoints.CreateUser(store, gameId, new CreateUserRequest("Robert", UserType.Both));
+        var player = GamesUsersEndpoints.CreateUser(store, gameId, new CreateUserRequest("Bob", UserType.Player));
+        var player2 = GamesUsersEndpoints.CreateUser(store, gameId, new CreateUserRequest("Allice", UserType.Player));
         
         var result = GamesEndpoints.GetGame(store, gameId);
         

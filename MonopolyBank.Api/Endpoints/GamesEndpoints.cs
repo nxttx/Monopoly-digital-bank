@@ -6,6 +6,21 @@ namespace MonopolyBank.Api.Endpoints;
 
 public static class GamesEndpoints
 {
+    public static void RegisterApiRoutes(WebApplication app)
+    {
+        app.MapGet("/games", (GameStore store) =>
+                GetAllGames(store).ToHttpResult())
+            .Produces<ApiResult<IReadOnlyList<GameSummary>>>();
+        app.MapPost("/games", (GameStore store) =>
+                CreateGame(store).ToHttpResult())
+            .Produces<ApiResult<GameCreated>>(StatusCodes.Status201Created);
+        app.MapGet("/games/{gameId:guid}", (GameStore store, Guid gameId) =>
+                GetGame(store, gameId).ToHttpResult())
+            .Produces<ApiResult<GameDetails>>()
+            .Produces<ApiResult<GameDetails>>(StatusCodes.Status404NotFound);
+    }
+
+
     public static ApiResult<GameCreated> CreateGame(GameStore store)
     {
         var gameId = store.CreateGame();
@@ -53,16 +68,6 @@ public static class GamesEndpoints
                 users.FirstOrDefault(u => u.Type is UserType.Banker or UserType.Both)),
             new Dictionary<string, Link> { ["Add user"] = new($"/games/{gameId}/users/", HttpMethod.Post) });
     }
-
-    public static ApiResult<UserCreated> CreateUser(GameStore store, Guid gameId, CreateUserRequest request)
-    {
-        var userId = Guid.NewGuid();
-        store.Execute(gameId, new GameCommand.AddUser(userId, request.Name, request.Type));
-        return new ApiResult<UserCreated>(
-            new HttpCall($"/games/{gameId}/users/", HttpMethod.Post, HttpStatusCode.Created),
-            new UserCreated(userId, gameId, request.Name, request.Type),
-            new Dictionary<string, Link> { ["Get details"] = new($"/games/{gameId}/", HttpMethod.Get) });
-    }
 }
 
 public record GameCreated(Guid GameId);
@@ -78,7 +83,3 @@ public record GameDetails(
     UserSummary? BankerUser);
 
 public record UserSummary(Guid UserId, string Name, UserType Type);
-
-public record CreateUserRequest(string Name, UserType Type);
-
-public record UserCreated(Guid UserId, Guid GameId, string Name, UserType Type);
