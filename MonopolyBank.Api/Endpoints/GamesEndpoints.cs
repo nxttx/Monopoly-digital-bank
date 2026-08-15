@@ -17,7 +17,7 @@ public static class GamesEndpoints
         app.MapGet("/games/{gameId:guid}", (GameStore store, Guid gameId) =>
                 GetGame(store, gameId).ToHttpResult())
             .Produces<ApiResult<GameDetails>>()
-            .Produces<ApiResult<GameDetails>>(StatusCodes.Status404NotFound);
+            .Produces<ApiError>(StatusCodes.Status404NotFound);
     }
 
 
@@ -44,13 +44,13 @@ public static class GamesEndpoints
             new Dictionary<string, Link> { ["Add game"] = new("/games/", HttpMethod.Post) });
     }
 
-    public static ApiResult<GameDetails> GetGame(GameStore store, Guid gameId)
+    public static ApiResponse GetGame(GameStore store, Guid gameId)
     {
         var game = store.Find(gameId);
         if (game is null)
-            return new ApiResult<GameDetails>(
+            return new ApiError(
                 new HttpCall($"/games/{gameId}/", HttpMethod.Get, HttpStatusCode.NotFound),
-                null,
+                [new FieldError("GameId", "Game not found.")],
                 new Dictionary<string, Link> { ["Add game"] = new("/games/", HttpMethod.Post) });
 
         var users = store.UsersOf(gameId)

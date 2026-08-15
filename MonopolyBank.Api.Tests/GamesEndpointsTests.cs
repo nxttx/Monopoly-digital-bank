@@ -60,10 +60,10 @@ public class GamesEndpointsTests
         var store = CreateGameStore();
         var game = GamesEndpoints.CreateGame(store);
         var gameId = game.Value!.GameId;
-        
-        
-        var result = GamesEndpoints.GetGame(store, gameId);
-        
+
+
+        var result = GamesEndpoints.GetGame(store, gameId).ShouldBeOfType<ApiResult<GameDetails>>();
+
         result.Http.Location.ShouldBe($"/games/{gameId}/");
         result.Http.Method.ShouldBe(HttpMethod.Get);
         result.Http.StatusCode.ShouldBe(HttpStatusCode.OK);
@@ -86,12 +86,13 @@ public class GamesEndpointsTests
         var gameId = Guid.NewGuid();
         
         
-        var result = GamesEndpoints.GetGame(store, gameId);
-        
+        var result = GamesEndpoints.GetGame(store, gameId).ShouldBeOfType<ApiError>();
+
         result.Http.Location.ShouldBe($"/games/{gameId}/");
         result.Http.Method.ShouldBe(HttpMethod.Get);
         result.Http.StatusCode.ShouldBe(HttpStatusCode.NotFound);
-        result.Value.ShouldBeNull();
+        VerifyResultDoesNotContainValueProperty(result);
+        result.Errors.ShouldContain(e => e.Field == "GameId" && e.Message == "Game not found.");
         
         result.Actions.ShouldContain(new KeyValuePair<string, Link>("Add game", new Link($"/games/", HttpMethod.Post)));
     }
@@ -103,8 +104,9 @@ public class GamesEndpointsTests
         var game = GamesEndpoints.CreateGame(store);
         var gameId = game.Value!.GameId;
 
-        var result = GamesUsersEndpoints.CreateUser(store, gameId, new CreateUserRequest("Robert", UserType.Banker));
-        
+        var result = GamesUsersEndpoints.CreateUser(store, gameId, new CreateUserRequest("Robert", UserType.Banker))
+            .ShouldBeOfType<ApiResult<UserCreated>>();
+
         result.Http.Location.ShouldBe($"/games/{gameId}/users/");
         result.Http.Method.ShouldBe(HttpMethod.Post);
         result.Http.StatusCode.ShouldBe(HttpStatusCode.Created);
@@ -125,12 +127,15 @@ public class GamesEndpointsTests
         var store = CreateGameStore();
         var game = GamesEndpoints.CreateGame(store);
         var gameId = game.Value!.GameId;
-        var banker = GamesUsersEndpoints.CreateUser(store, gameId, new CreateUserRequest("Robert", UserType.Both));
-        var player = GamesUsersEndpoints.CreateUser(store, gameId, new CreateUserRequest("Bob", UserType.Player));
-        var player2 = GamesUsersEndpoints.CreateUser(store, gameId, new CreateUserRequest("Allice", UserType.Player));
-        
-        var result = GamesEndpoints.GetGame(store, gameId);
-        
+        var banker = GamesUsersEndpoints.CreateUser(store, gameId, new CreateUserRequest("Robert", UserType.Both))
+            .ShouldBeOfType<ApiResult<UserCreated>>();
+        var player = GamesUsersEndpoints.CreateUser(store, gameId, new CreateUserRequest("Bob", UserType.Player))
+            .ShouldBeOfType<ApiResult<UserCreated>>();
+        var player2 = GamesUsersEndpoints.CreateUser(store, gameId, new CreateUserRequest("Allice", UserType.Player))
+            .ShouldBeOfType<ApiResult<UserCreated>>();
+
+        var result = GamesEndpoints.GetGame(store, gameId).ShouldBeOfType<ApiResult<GameDetails>>();
+
         result.Http.Location.ShouldBe($"/games/{gameId}/");
         result.Http.Method.ShouldBe(HttpMethod.Get);
         result.Http.StatusCode.ShouldBe(HttpStatusCode.OK);
@@ -149,6 +154,31 @@ public class GamesEndpointsTests
         result.Value.BankerUser.Name.ShouldBe(banker.Value.Name);
 
         result.Actions.ShouldContain(new KeyValuePair<string, Link>("Add user", new Link($"/games/{gameId}/users/", HttpMethod.Post)));
+    }
+
+    [Fact]
+    public void CreateUserInGameWithInvalidName_Returns400()
+    {
+        var store = CreateGameStore();
+        var game = GamesEndpoints.CreateGame(store);
+        var gameId = game.Value!.GameId;
+    
+        var result = GamesUsersEndpoints.CreateUser(store, gameId, new CreateUserRequest("", UserType.Banker))
+            .ShouldBeOfType<ApiError>();
+
+        result.Http.Location.ShouldBe($"/games/{gameId}/users/");
+        result.Http.Method.ShouldBe(HttpMethod.Post);
+        result.Http.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+        VerifyResultDoesNotContainValueProperty(result);
+
+        result.Errors.ShouldContain(e => e.Field == "Name" && e.Message == "Name cannot be empty.");
+        result.Actions.ShouldContain(new KeyValuePair<string, Link>("Add user", new Link($"/games/{gameId}/users/", HttpMethod.Post)));
+    }
+
+    private static void VerifyResultDoesNotContainValueProperty(ApiResponse result)
+    {
+        // design guard: an error response's type must not expose a Value property
+        result.GetType().GetProperty("Value").ShouldBeNull();
     }
 
     private static GameStore CreateGameStore()

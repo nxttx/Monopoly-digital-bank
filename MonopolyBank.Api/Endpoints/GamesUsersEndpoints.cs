@@ -10,13 +10,25 @@ public static class GamesUsersEndpoints
     {
         app.MapPost("/games/{gameId:guid}/users", (GameStore store, Guid gameId, CreateUserRequest request) =>
                 CreateUser(store, gameId, request).ToHttpResult())
-            .Produces<ApiResult<UserCreated>>(StatusCodes.Status201Created);
+            .Produces<ApiResult<UserCreated>>(StatusCodes.Status201Created)
+            .Produces<ApiError>(StatusCodes.Status400BadRequest);
     }
 
-    public static ApiResult<UserCreated> CreateUser(GameStore store, Guid gameId, CreateUserRequest request)
+    public static ApiResponse CreateUser(GameStore store, Guid gameId, CreateUserRequest request)
     {
         var userId = Guid.NewGuid();
-        store.Execute(gameId, new GameCommand.AddUser(userId, request.Name, request.Type));
+        try
+        {
+            store.Execute(gameId, new GameCommand.AddUser(userId, request.Name, request.Type));
+        }
+        catch (ArgumentException e)
+        {
+            return new ApiError(
+                new HttpCall($"/games/{gameId}/users/", HttpMethod.Post, HttpStatusCode.BadRequest),
+                [new FieldError("Name", e.Message)],
+                new Dictionary<string, Link> { ["Add user"] = new($"/games/{gameId}/users/", HttpMethod.Post) });
+        }
+
         return new ApiResult<UserCreated>(
             new HttpCall($"/games/{gameId}/users/", HttpMethod.Post, HttpStatusCode.Created),
             new UserCreated(userId, gameId, request.Name, request.Type),
