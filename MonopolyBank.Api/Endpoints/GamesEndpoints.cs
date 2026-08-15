@@ -12,20 +12,21 @@ public static class GamesEndpoints
         return new ApiResult<GameCreated>(
             new HttpCall("/games/", HttpMethod.Post, HttpStatusCode.Created),
             new GameCreated(gameId),
-            new Dictionary<string, string> { ["Get details"] = $"/games/{gameId}/" });
+            new Dictionary<string, Link> { ["Get details"] = new($"/games/{gameId}/", HttpMethod.Get) });
     }
 
     public static ApiResult<IReadOnlyList<GameSummary>> GetAllGames(GameStore store)
     {
-        var gameIds = store.GameIds();
-        var links = new Dictionary<string, string>();
-        for (var i = 0; i < gameIds.Count; i++)
-            links[$"Get details game {i + 1}"] = $"/games/{gameIds[i]}/";
+        var summaries = store.GameIds()
+            .Select(id => new GameSummary(
+                id,
+                new Dictionary<string, Link> { ["Get details"] = new($"/games/{id}/", HttpMethod.Get) }))
+            .ToList();
 
         return new ApiResult<IReadOnlyList<GameSummary>>(
             new HttpCall("/games/", HttpMethod.Get, HttpStatusCode.OK),
-            gameIds.Select(id => new GameSummary(id)).ToList(),
-            links);
+            summaries,
+            new Dictionary<string, Link> { ["Add game"] = new("/games/", HttpMethod.Post) });
     }
 
     public static ApiResult<GameDetails> GetGame(GameStore store, Guid gameId)
@@ -35,7 +36,7 @@ public static class GamesEndpoints
             return new ApiResult<GameDetails>(
                 new HttpCall($"/games/{gameId}/", HttpMethod.Get, HttpStatusCode.NotFound),
                 null,
-                new Dictionary<string, string> { ["Add game"] = "/games/" });
+                new Dictionary<string, Link> { ["Add game"] = new("/games/", HttpMethod.Post) });
 
         var users = store.UsersOf(gameId)
             .Select(u => new UserSummary(u.UserId, u.Name, u.Type))
@@ -50,7 +51,7 @@ public static class GamesEndpoints
                 game.Started,
                 Game.DefaultStartAmount,
                 users.FirstOrDefault(u => u.Type is UserType.Banker or UserType.Both)),
-            new Dictionary<string, string> { ["Add user"] = $"/games/{gameId}/users/" });
+            new Dictionary<string, Link> { ["Add user"] = new($"/games/{gameId}/users/", HttpMethod.Post) });
     }
 
     public static ApiResult<UserCreated> CreateUser(GameStore store, Guid gameId, CreateUserRequest request)
@@ -60,13 +61,13 @@ public static class GamesEndpoints
         return new ApiResult<UserCreated>(
             new HttpCall($"/games/{gameId}/users/", HttpMethod.Post, HttpStatusCode.Created),
             new UserCreated(userId, gameId, request.Name, request.Type),
-            new Dictionary<string, string> { ["Get details"] = $"/games/{gameId}/" });
+            new Dictionary<string, Link> { ["Get details"] = new($"/games/{gameId}/", HttpMethod.Get) });
     }
 }
 
 public record GameCreated(Guid GameId);
 
-public record GameSummary(Guid GameId);
+public record GameSummary(Guid GameId, Dictionary<string, Link> Links);
 
 public record GameDetails(
     Guid GameId,

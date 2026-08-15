@@ -6,9 +6,11 @@ namespace MonopolyBank.Api.Endpoints;
 /// The API's own response envelope: which call this answers, the payload,
 /// and named follow-up links a client can take from here.
 /// </summary>
-public record ApiResult<T>(HttpCall Http, T? Value, Dictionary<string, string> Links);
+public record ApiResult<T>(HttpCall Http, T? Value, Dictionary<string, Link> Links);
 
 public record HttpCall(string Location, HttpMethod Method, HttpStatusCode StatusCode);
+
+public record Link(string Location, HttpMethod Method);
 
 public static class ApiResultExtensions
 {

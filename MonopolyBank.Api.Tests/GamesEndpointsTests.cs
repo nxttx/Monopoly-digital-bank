@@ -22,8 +22,8 @@ public class GamesEndpointsTests
         
         result.Value.ShouldNotBeNull();
         result.Value.GameId.ShouldNotBe(Guid.Empty);
-        result.Links.ShouldContain(new KeyValuePair<string, string>("Get details", $"/games/{result.Value.GameId}/"));
-        
+        result.Links.ShouldContain(new KeyValuePair<string, Link>("Get details", new Link($"/games/{result.Value.GameId}/", HttpMethod.Get)));
+
         store.Find(result.Value.GameId).ShouldNotBeNull();
     }
     [Fact]
@@ -45,8 +45,13 @@ public class GamesEndpointsTests
         result.Value.ShouldNotBeEmpty();
         result.Value.ShouldContain(g => g.GameId == gameId);
         result.Value.ShouldContain(g => g.GameId == gameId2);
-        result.Links.ShouldContain(new KeyValuePair<string, string>("Get details game 1", $"/games/{gameId}/"));
-        result.Links.ShouldContain(new KeyValuePair<string, string>("Get details game 2", $"/games/{gameId2}/"));
+
+        var summary = result.Value.Single(g => g.GameId == gameId);
+        summary.Links.ShouldContain(new KeyValuePair<string, Link>("Get details", new Link($"/games/{gameId}/", HttpMethod.Get)));
+        var summary2 = result.Value.Single(g => g.GameId == gameId2);
+        summary2.Links.ShouldContain(new KeyValuePair<string, Link>("Get details", new Link($"/games/{gameId2}/", HttpMethod.Get)));
+
+        result.Links.ShouldContain(new KeyValuePair<string, Link>("Add game", new Link($"/games/", HttpMethod.Post)));
     }
 
     [Fact]
@@ -71,7 +76,7 @@ public class GamesEndpointsTests
         result.Value.DefaultStartAmount.ShouldBe(1500);
         result.Value.BankerUser.ShouldBe(null);
         
-        result.Links.ShouldContain(new KeyValuePair<string, string>("Add user", $"/games/{result.Value.GameId}/users/"));
+        result.Links.ShouldContain(new KeyValuePair<string, Link>("Add user", new Link($"/games/{result.Value.GameId}/users/", HttpMethod.Post)));
     }
     
     [Fact]
@@ -88,7 +93,7 @@ public class GamesEndpointsTests
         result.Http.StatusCode.ShouldBe(HttpStatusCode.NotFound);
         result.Value.ShouldBeNull();
         
-        result.Links.ShouldContain(new KeyValuePair<string, string>("Add game", $"/games/"));
+        result.Links.ShouldContain(new KeyValuePair<string, Link>("Add game", new Link($"/games/", HttpMethod.Post)));
     }
     
     [Fact]
@@ -108,7 +113,7 @@ public class GamesEndpointsTests
         result.Value.UserId.ShouldNotBe(Guid.Empty);
         result.Value.GameId.ShouldBe(gameId);
         
-        result.Links.ShouldContain(new KeyValuePair<string, string>("Get details", $"/games/{gameId}/"));
+        result.Links.ShouldContain(new KeyValuePair<string, Link>("Get details", new Link($"/games/{gameId}/", HttpMethod.Get)));
         
         var storedGame = store.Find(gameId).ShouldNotBeNull();
         storedGame.Users.ShouldContain(u => u.Player.Name == "Robert");
@@ -142,6 +147,8 @@ public class GamesEndpointsTests
         result.Value.BankerUser.ShouldNotBeNull();
         result.Value.BankerUser.UserId.ShouldBe(banker.Value.UserId);
         result.Value.BankerUser.Name.ShouldBe(banker.Value.Name);
+
+        result.Links.ShouldContain(new KeyValuePair<string, Link>("Add user", new Link($"/games/{gameId}/users/", HttpMethod.Post)));
     }
 
     private static GameStore CreateGameStore()
