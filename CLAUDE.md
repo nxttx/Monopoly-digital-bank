@@ -34,7 +34,7 @@ A Monopoly banking domain, built with **DDD** and strict **TDD**. The user has R
 - Money lives on `Player`. Transfers target a `Player`, never a `User` (`Banker.TransferMoney(Player, int)`, `Player.TransferMoney(Player, int)`) — this keeps illegal states (paying a banker-only user) unrepresentable.
 - The `Banker` has unlimited money: giving money doesn't decrease anything.
 - Role guards are sender-side: transferring without the matching role throws `InvalidOperationException` (receiving is not guarded).
-- No money moves before `game.Start()` (players AND banker): `GameNotStartedException`, covering both "no game" and "game not started". `Start()` requires ≥1 banker and ≥2 players (`AmountOfPlayersException`).
+- No money moves before `game.Start()` (players AND banker): `GameNotStartedException`, covering both "no game" and "game not started". `Start()` requires ≥1 banker and ≥2 players (`AmountOfPlayersException`) and cannot run twice (`AlreadyStartedGameException`, "Game already started." — a double start would duplicate the starting-money ledger entries).
 - Guard order in `Player.TransferMoney`: cross-game → game-started → role → negative amount → balance. Both roles carry an internal `Game?` link set by `Game.AddUser`.
 - Transactions: `Game.Ledger` (internal) is the single source of truth — a `Transaction(Role From, Role To, int Amount)` record per money movement. `Player.History` is a filtered projection (entries where the player is From or To). Starting money is itself a ledger entry from the banker, written at `Start()` (and at `AddUser` for post-start joiners).
 - Negative amounts: players cannot transfer them (no stealing); the Banker CAN — a negative bank transfer is how the bank collects taxes/fees.
