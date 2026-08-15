@@ -14,6 +14,9 @@ public static class JwtService
 {
     public static string GenerateJwt(string headerAlg, string headerTyp, Dictionary<string, object> payload, string secret)
     {
+        if (string.IsNullOrEmpty(headerAlg) || headerAlg.Equals("none", StringComparison.OrdinalIgnoreCase))
+            throw new ArgumentException("Alg cannot be null.");
+
         var header = Base64Url(JsonSerializer.SerializeToUtf8Bytes(new { alg = headerAlg, typ = headerTyp }));
         var body = Base64Url(JsonSerializer.SerializeToUtf8Bytes(payload));
         return $"{header}.{body}.{Sign($"{header}.{body}", secret)}";
