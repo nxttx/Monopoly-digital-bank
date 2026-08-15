@@ -254,6 +254,9 @@ public class GamesEndpointsTests
         result.Actions.ShouldContain(new KeyValuePair<string, Link>("Get game details", new Link($"/games/{gameId}/", HttpMethod.Get)));
         result.Actions.ShouldContain(new KeyValuePair<string, Link>("Add user", new Link($"/games/{gameId}/users/", HttpMethod.Post)));
     }
+    
+    // adding two bankers results in a 500 
+    
 
     private static void VerifyResultDoesNotContainValueProperty(ApiResponse result)
     {
