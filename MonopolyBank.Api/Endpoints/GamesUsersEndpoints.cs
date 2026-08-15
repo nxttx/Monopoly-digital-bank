@@ -16,11 +16,11 @@ public static class GamesUsersEndpoints
 
     public static ApiResponse CreateUser(GameStore store, Guid gameId, CreateUserRequest request)
     {
+        var location = ApiRoutes.GameUsers(gameId);
+
         if (!Enum.TryParse<UserRole>(request.Role, out var role) || !Enum.IsDefined(role))
-            return new ApiError(
-                new HttpCall($"/games/{gameId}/users/", HttpMethod.Post, HttpStatusCode.BadRequest),
-                [new FieldError("Role", $"Role must be one of the following: {string.Join(", ", Enum.GetNames<UserRole>())}.")],
-                new Dictionary<string, Link> { ["Add user"] = new($"/games/{gameId}/users/", HttpMethod.Post) });
+            return BadRequest(new FieldError("Role",
+                $"Role must be one of the following: {string.Join(", ", Enum.GetNames<UserRole>())}."));
 
         var userId = Guid.NewGuid();
         try
@@ -29,16 +29,18 @@ public static class GamesUsersEndpoints
         }
         catch (ArgumentException e)
         {
-            return new ApiError(
-                new HttpCall($"/games/{gameId}/users/", HttpMethod.Post, HttpStatusCode.BadRequest),
-                [new FieldError("Name", e.Message)],
-                new Dictionary<string, Link> { ["Add user"] = new($"/games/{gameId}/users/", HttpMethod.Post) });
+            return BadRequest(new FieldError("Name", e.Message));
         }
 
         return new ApiResult<UserCreated>(
-            new HttpCall($"/games/{gameId}/users/", HttpMethod.Post, HttpStatusCode.Created),
+            new HttpCall(location, HttpMethod.Post, HttpStatusCode.Created),
             new UserCreated(userId, gameId, request.Name, role),
-            new Dictionary<string, Link> { ["Get details"] = new($"/games/{gameId}/", HttpMethod.Get) });
+            new Dictionary<string, Link> { ["Get details"] = new(ApiRoutes.Game(gameId), HttpMethod.Get) });
+
+        ApiError BadRequest(FieldError error) => new(
+            new HttpCall(location, HttpMethod.Post, HttpStatusCode.BadRequest),
+            [error],
+            new Dictionary<string, Link> { ["Add user"] = new(location, HttpMethod.Post) });
     }
 }
 

@@ -25,9 +25,9 @@ public static class GamesEndpoints
     {
         var gameId = store.CreateGame();
         return new ApiResult<GameCreated>(
-            new HttpCall("/games/", HttpMethod.Post, HttpStatusCode.Created),
+            new HttpCall(ApiRoutes.Games, HttpMethod.Post, HttpStatusCode.Created),
             new GameCreated(gameId),
-            new Dictionary<string, Link> { ["Get details"] = new($"/games/{gameId}/", HttpMethod.Get) });
+            new Dictionary<string, Link> { ["Get details"] = new(ApiRoutes.Game(gameId), HttpMethod.Get) });
     }
 
     public static ApiResult<IReadOnlyList<GameSummary>> GetAllGames(GameStore store)
@@ -35,30 +35,31 @@ public static class GamesEndpoints
         var summaries = store.GameIds()
             .Select(id => new GameSummary(
                 id,
-                new Dictionary<string, Link> { ["Get details"] = new($"/games/{id}/", HttpMethod.Get) }))
+                new Dictionary<string, Link> { ["Get details"] = new(ApiRoutes.Game(id), HttpMethod.Get) }))
             .ToList();
 
         return new ApiResult<IReadOnlyList<GameSummary>>(
-            new HttpCall("/games/", HttpMethod.Get, HttpStatusCode.OK),
+            new HttpCall(ApiRoutes.Games, HttpMethod.Get, HttpStatusCode.OK),
             summaries,
-            new Dictionary<string, Link> { ["Add game"] = new("/games/", HttpMethod.Post) });
+            new Dictionary<string, Link> { ["Add game"] = new(ApiRoutes.Games, HttpMethod.Post) });
     }
 
     public static ApiResponse GetGame(GameStore store, Guid gameId)
     {
+        var location = ApiRoutes.Game(gameId);
         var game = store.Find(gameId);
         if (game is null)
             return new ApiError(
-                new HttpCall($"/games/{gameId}/", HttpMethod.Get, HttpStatusCode.NotFound),
+                new HttpCall(location, HttpMethod.Get, HttpStatusCode.NotFound),
                 [new FieldError("GameId", "Game not found.")],
-                new Dictionary<string, Link> { ["Add game"] = new("/games/", HttpMethod.Post) });
+                new Dictionary<string, Link> { ["Add game"] = new(ApiRoutes.Games, HttpMethod.Post) });
 
         var users = store.UsersOf(gameId)
             .Select(u => new UserSummary(u.UserId, u.Name, u.Role))
             .ToList();
 
         return new ApiResult<GameDetails>(
-            new HttpCall($"/games/{gameId}/", HttpMethod.Get, HttpStatusCode.OK),
+            new HttpCall(location, HttpMethod.Get, HttpStatusCode.OK),
             new GameDetails(
                 gameId,
                 users,
@@ -66,7 +67,7 @@ public static class GamesEndpoints
                 game.Started,
                 Game.DefaultStartAmount,
                 users.FirstOrDefault(u => u.Role is UserRole.Banker or UserRole.Both)),
-            new Dictionary<string, Link> { ["Add user"] = new($"/games/{gameId}/users/", HttpMethod.Post) });
+            new Dictionary<string, Link> { ["Add user"] = new(ApiRoutes.GameUsers(gameId), HttpMethod.Post) });
     }
 }
 
