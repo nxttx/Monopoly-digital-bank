@@ -16,7 +16,7 @@ public static class GamesUsersEndpoints
 
     public static ApiResponse CreateUser(GameStore store, Guid gameId, CreateUserRequest request)
     {
-        if (!Enum.TryParse<UserType>(request.Type, out var type) || !Enum.IsDefined(type))
+        if (!Enum.TryParse<UserType>(request.Role, out var type) || !Enum.IsDefined(type))
             return new ApiError(
                 new HttpCall($"/games/{gameId}/users/", HttpMethod.Post, HttpStatusCode.BadRequest),
                 [new FieldError("Role", $"Role must be one of the following: {string.Join(", ", Enum.GetNames<UserType>())}.")],
@@ -42,6 +42,6 @@ public static class GamesUsersEndpoints
     }
 }
 
-public record CreateUserRequest(string Name, string Type);
+public record CreateUserRequest(string Name, string Role);
 
 public record UserCreated(Guid UserId, Guid GameId, string Name, UserType Type);
