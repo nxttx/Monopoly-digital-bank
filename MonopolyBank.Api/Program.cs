@@ -9,6 +9,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.ConfigureHttpJsonOptions(o =>
 {
     o.SerializerOptions.Converters.Add(new HttpStatusCodeJsonConverter());
+    o.SerializerOptions.Converters.Add(new HttpMethodJsonConverter());
     o.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
 });
 builder.Services.AddOpenApi();
