@@ -18,6 +18,9 @@ public class Game
 
     public void Start()
     {
+        if (Started)
+            throw new AlreadyStartedGameException();
+
         if (BankerUser is not { } banker || _users.Count(u => u.IsPlayer) < 2)
             throw new AmountOfPlayersException();
 

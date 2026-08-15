@@ -366,6 +366,22 @@ public class Tests
         game.Users.Count.ShouldBe(3);
         game.Start();
     }
+    
+    // TODO RB 16/08/2026 01:07: test for Game.Start() having no already-started guard. 
+    [Fact]
+    public void AGameShouldNotBeStartedTwice()
+    {
+        var user1 = new User("Janne");
+        var user2 = new User("Bob", UserRole.Both);
+        var game = new Game();
+        game.AddUser(user1);
+        game.AddUser(user2);
+        
+        game.Start();
+        Should.Throw<AlreadyStartedGameException>(() => game.Start())
+            .Message.ShouldBe("Game already started.");
+    }
+    
 
     [Fact]
     public void APlayerCannotTransferMoneyBeforeTheGameHasStarted()
