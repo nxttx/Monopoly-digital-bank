@@ -174,6 +174,25 @@ public class GamesEndpointsTests
         result.Errors.ShouldContain(e => e.Field == "Name" && e.Message == "Name cannot be empty.");
         result.Actions.ShouldContain(new KeyValuePair<string, Link>("Add user", new Link($"/games/{gameId}/users/", HttpMethod.Post)));
     }
+    
+    [Fact]
+    public void CreateUserInGameWithInvalidRole_Returns400()
+    {
+        var store = CreateGameStore();
+        var game = GamesEndpoints.CreateGame(store);
+        var gameId = game.Value!.GameId;
+    
+        var result = GamesUsersEndpoints.CreateUser(store, gameId, new CreateUserRequest("Bob", "WrongRole"))
+            .ShouldBeOfType<ApiError>();
+
+        result.Http.Location.ShouldBe($"/games/{gameId}/users/");
+        result.Http.Method.ShouldBe(HttpMethod.Post);
+        result.Http.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+        VerifyResultDoesNotContainValueProperty(result);
+
+        result.Errors.ShouldContain(e => e.Field == "Role" && e.Message == $"Role must be one of the following: {string.Join(", ", Enum.GetNames(typeof(UserType)))}.");
+        result.Actions.ShouldContain(new KeyValuePair<string, Link>("Add user", new Link($"/games/{gameId}/users/", HttpMethod.Post)));
+    }
 
     private static void VerifyResultDoesNotContainValueProperty(ApiResponse result)
     {

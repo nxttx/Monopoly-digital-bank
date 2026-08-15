@@ -16,11 +16,15 @@ public static class GamesUsersEndpoints
 
     public static ApiResponse CreateUser(GameStore store, Guid gameId, CreateUserRequest request)
     {
+        if (!Enum.TryParse<UserType>(request.Type, out var type) || !Enum.IsDefined(type))
+            return new ApiError(
+                new HttpCall($"/games/{gameId}/users/", HttpMethod.Post, HttpStatusCode.BadRequest),
+                [new FieldError("Role", $"Role must be one of the following: {string.Join(", ", Enum.GetNames<UserType>())}.")],
+                new Dictionary<string, Link> { ["Add user"] = new($"/games/{gameId}/users/", HttpMethod.Post) });
+
         var userId = Guid.NewGuid();
-        UserType type;
         try
         {
-            type = Enum.Parse<UserType>(request.Type);
             store.Execute(gameId, new GameCommand.AddUser(userId, request.Name, type));
         }
         catch (ArgumentException e)
