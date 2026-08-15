@@ -20,6 +20,7 @@ var app = builder.Build();
 
 app.MapOpenApi();
 app.MapScalarApiReference();
+app.MapGet("/", () => Results.Redirect("/scalar"));
 
 // Route registrations go here, one per user-tested handler.
 app.MapGet("/health", () => Results.Ok(new { status = "healthy" })); // temporary scaffold check
