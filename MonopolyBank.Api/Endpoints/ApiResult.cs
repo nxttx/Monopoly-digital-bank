@@ -18,6 +18,15 @@ public record ApiError(HttpCall Http, IReadOnlyList<FieldError> Errors, Dictiona
 
 public record FieldError(string Field, string Message);
 
+/// <summary>Error envelopes shared by multiple endpoints.</summary>
+public static class ApiErrors
+{
+    public static ApiError GameNotFound(string location, HttpMethod method) => new(
+        new HttpCall(location, method, HttpStatusCode.NotFound),
+        [new FieldError("GameId", "Game not found.")],
+        new Dictionary<string, Link> { ["Add game"] = new(ApiRoutes.Games, HttpMethod.Post) });
+}
+
 public record HttpCall(string Location, HttpMethod Method, HttpStatusCode StatusCode);
 
 public record Link(string Location, HttpMethod Method);

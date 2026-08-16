@@ -54,10 +54,7 @@ public static class GamesEndpoints
         var location = ApiRoutes.GameStart(gameId);
 
         if (store.Find(gameId) is null)
-            return new ApiError(
-                new HttpCall(location, HttpMethod.Post, HttpStatusCode.NotFound),
-                [new FieldError("GameId", "Game not found.")],
-                new Dictionary<string, Link> { ["Add game"] = new(ApiRoutes.Games, HttpMethod.Post) });
+            return ApiErrors.GameNotFound(location, HttpMethod.Post);
 
         try
         {
@@ -93,10 +90,7 @@ public static class GamesEndpoints
         var location = ApiRoutes.Game(gameId);
         var game = store.Find(gameId);
         if (game is null)
-            return new ApiError(
-                new HttpCall(location, HttpMethod.Get, HttpStatusCode.NotFound),
-                [new FieldError("GameId", "Game not found.")],
-                new Dictionary<string, Link> { ["Add game"] = new(ApiRoutes.Games, HttpMethod.Post) });
+            return ApiErrors.GameNotFound(location, HttpMethod.Get);
 
         var users = store.UsersOf(gameId)
             .Select(u => new UserSummary(

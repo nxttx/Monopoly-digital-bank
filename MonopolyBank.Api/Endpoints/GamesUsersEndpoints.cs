@@ -24,10 +24,7 @@ public static class GamesUsersEndpoints
         var location = ApiRoutes.GameUsers(gameId);
 
         if (store.Find(gameId) is null)
-            return new ApiError(
-                new HttpCall(location, HttpMethod.Post, HttpStatusCode.NotFound),
-                [new FieldError("GameId", "Game not found.")],
-                new Dictionary<string, Link> { ["Add game"] = new(ApiRoutes.Games, HttpMethod.Post) });
+            return ApiErrors.GameNotFound(location, HttpMethod.Post);
 
         if (!Enum.TryParse<UserRole>(request.Role, out var role) || !Enum.IsDefined(role))
             return BadRequest(new FieldError("Role",
@@ -68,10 +65,7 @@ public static class GamesUsersEndpoints
 
         var game = store.Find(gameId);
         if (game is null)
-            return new ApiError(
-                new HttpCall(location, HttpMethod.Get, HttpStatusCode.NotFound),
-                [new FieldError("GameId", "Game not found.")],
-                new Dictionary<string, Link> { ["Add game"] = new(ApiRoutes.Games, HttpMethod.Post) });
+            return ApiErrors.GameNotFound(location, HttpMethod.Get);
 
         // The Nth AddUser command corresponds to the Nth game user (only successful
         // adds are logged, in order), so this join stays exact even with duplicate names.
