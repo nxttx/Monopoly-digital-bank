@@ -18,6 +18,10 @@ public static class GamesEndpoints
                 GetGame(store, gameId).ToHttpResult())
             .Produces<ApiResult<GameDetails>>()
             .Produces<ApiError>(StatusCodes.Status404NotFound);
+        app.MapPost("/games/{gameId:guid}/start", (GameStore store, Guid gameId) =>
+                StartGame(store, gameId).ToHttpResult())
+            .Produces<ApiResult<GameStarted>>()
+            .Produces<ApiError>(StatusCodes.Status400BadRequest);
     }
 
 
@@ -42,6 +46,39 @@ public static class GamesEndpoints
             new HttpCall(ApiRoutes.Games, HttpMethod.Get, HttpStatusCode.OK),
             summaries,
             new Dictionary<string, Link> { ["Add game"] = new(ApiRoutes.Games, HttpMethod.Post) });
+    }
+
+    public static ApiResponse StartGame(GameStore store, Guid gameId)
+    {
+        var location = ApiRoutes.GameStart(gameId);
+
+        try
+        {
+            store.Execute(gameId, new GameCommand.Start());
+        }
+        catch (AmountOfPlayersException e)
+        {
+            return new ApiError(
+                new HttpCall(location, HttpMethod.Post, HttpStatusCode.BadRequest),
+                [new FieldError("GenericMessage", e.Message)],
+                new Dictionary<string, Link>
+                {
+                    ["Get game details"] = new(ApiRoutes.Game(gameId), HttpMethod.Get),
+                    ["Add user"] = new(ApiRoutes.GameUsers(gameId), HttpMethod.Post),
+                });
+        }
+        catch (AlreadyStartedGameException)
+        {
+            return new ApiError(
+                new HttpCall(location, HttpMethod.Post, HttpStatusCode.BadRequest),
+                [new FieldError("GenericMessage", "A game can only be started once.")],
+                new Dictionary<string, Link> { ["Get game details"] = new(ApiRoutes.Game(gameId), HttpMethod.Get) });
+        }
+
+        return new ApiResult<GameStarted>(
+            new HttpCall(location, HttpMethod.Post, HttpStatusCode.OK),
+            new GameStarted(gameId, store.Find(gameId)!.Started),
+            new Dictionary<string, Link> { ["Get game details"] = new(ApiRoutes.Game(gameId), HttpMethod.Get) });
     }
 
     public static ApiResponse GetGame(GameStore store, Guid gameId)
@@ -76,6 +113,8 @@ public static class GamesEndpoints
 }
 
 public record GameCreated(Guid GameId);
+
+public record GameStarted(Guid GameId, bool Started);
 
 public record GameSummary(Guid GameId, Dictionary<string, Link> Actions);
 

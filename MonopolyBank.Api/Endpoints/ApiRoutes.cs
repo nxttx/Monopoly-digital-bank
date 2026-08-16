@@ -13,6 +13,8 @@ public static class ApiRoutes
 
     public static string Game(Guid gameId) => $"/games/{gameId}/";
 
+    public static string GameStart(Guid gameId) => $"/games/{gameId}/start/";
+
     public static string GameUsers(Guid gameId) => $"/games/{gameId}/users/";
 
     public static string GameUser(Guid gameId, Guid userId) => $"/games/{gameId}/users/{userId}/";
