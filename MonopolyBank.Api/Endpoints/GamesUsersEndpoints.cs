@@ -17,6 +17,10 @@ public static class GamesUsersEndpoints
                 GetUser(store, gameId, userId).ToHttpResult())
             .Produces<ApiResult<UserInformation>>()
             .Produces<ApiError>(StatusCodes.Status404NotFound);
+        app.MapPost("/games/{gameId:guid}/users/{fromUserId:guid}/give-money/{toUserId:guid}",
+                (GameStore store, Guid gameId, Guid fromUserId, Guid toUserId, int amount) =>
+                    GiveMoney(store, gameId, fromUserId, toUserId, amount).ToHttpResult())
+            .Produces<ApiResult<MoneyTransferred>>();
     }
 
     public static ApiResponse CreateUser(GameStore store, Guid gameId, CreateUserRequest request)
@@ -67,11 +71,8 @@ public static class GamesUsersEndpoints
         if (game is null)
             return ApiErrors.GameNotFound(location, HttpMethod.Get);
 
-        // The Nth AddUser command corresponds to the Nth game user (only successful
-        // adds are logged, in order), so this join stays exact even with duplicate names.
-        var added = store.UsersOf(gameId);
-        var index = added.TakeWhile(u => u.UserId != userId).Count();
-        if (index == added.Count)
+        var user = store.FindUser(gameId, userId);
+        if (user is null)
             return new ApiError(
                 new HttpCall(location, HttpMethod.Get, HttpStatusCode.NotFound),
                 [new FieldError("UserId", "User not found.")],
@@ -81,12 +82,19 @@ public static class GamesUsersEndpoints
                     ["Add user"] = new(ApiRoutes.GameUsers(gameId), HttpMethod.Post),
                 });
 
-        var user = added[index];
-        var player = game.Users.ElementAt(index).Player;
-
         return new ApiResult<UserInformation>(
             new HttpCall(location, HttpMethod.Get, HttpStatusCode.OK),
-            new UserInformation(userId, user.Name, user.Role, player.Money, player.BankCard, gameId),
+            new UserInformation(userId, user.Name, user.Role, user.Money.Amount, user.BankCard, gameId),
+            new Dictionary<string, Link> { ["Get game details"] = new(ApiRoutes.Game(gameId), HttpMethod.Get) });
+    }
+
+    public static ApiResult<MoneyTransferred> GiveMoney(GameStore store, Guid gameId, Guid fromUserId, Guid toUserId, int amount)
+    {
+        store.Execute(gameId, new GameCommand.BankerTransfer(fromUserId, toUserId, amount));
+
+        return new ApiResult<MoneyTransferred>(
+            new HttpCall(ApiRoutes.GiveMoney(gameId, fromUserId, toUserId), HttpMethod.Post, HttpStatusCode.OK),
+            new MoneyTransferred(gameId, amount, fromUserId, toUserId),
             new Dictionary<string, Link> { ["Get game details"] = new(ApiRoutes.Game(gameId), HttpMethod.Get) });
     }
 }
@@ -96,3 +104,5 @@ public record CreateUserRequest(string Name, string Role);
 public record UserCreated(Guid UserId, Guid GameId, string Name, UserRole Role);
 
 public record UserInformation(Guid UserId, string Name, UserRole Role, int Balance, BankCard BankCard, Guid GameId);
+
+public record MoneyTransferred(Guid GameId, int Amount, Guid From, Guid To);

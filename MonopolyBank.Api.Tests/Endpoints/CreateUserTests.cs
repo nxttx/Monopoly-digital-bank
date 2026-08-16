@@ -4,7 +4,7 @@ using MonopolyBank.Domain;
 using Shouldly;
 using Xunit;
 
-namespace MonopolyBank.Api.Tests;
+namespace MonopolyBank.Api.Tests.Endpoints;
 
 public class CreateUserTests : EndpointTestBase
 {

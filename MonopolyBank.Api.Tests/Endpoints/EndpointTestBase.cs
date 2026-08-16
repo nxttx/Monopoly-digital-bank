@@ -2,7 +2,7 @@ using MonopolyBank.Api.Endpoints;
 using MonopolyBank.Api.Persistence;
 using Shouldly;
 
-namespace MonopolyBank.Api.Tests;
+namespace MonopolyBank.Api.Tests.Endpoints;
 
 public abstract class EndpointTestBase
 {

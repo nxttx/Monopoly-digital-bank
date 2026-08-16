@@ -20,11 +20,13 @@ public class ScaffoldSmokeTest
         var store = new GameStore(log);
 
         var id = store.CreateGame();
-        store.Execute(id, new GameCommand.AddUser(Guid.NewGuid(), "Jan", UserRole.Player));
-        store.Execute(id, new GameCommand.AddUser(Guid.NewGuid(), "Bob", UserRole.Player));
+        var jan = Guid.NewGuid();
+        var bob = Guid.NewGuid();
+        store.Execute(id, new GameCommand.AddUser(jan, "Jan", UserRole.Player));
+        store.Execute(id, new GameCommand.AddUser(bob, "Bob", UserRole.Player));
         store.Execute(id, new GameCommand.AddUser(Guid.NewGuid(), "Mick", UserRole.Banker));
         store.Execute(id, new GameCommand.Start());
-        store.Execute(id, new GameCommand.PlayerTransfer("Jan", "Bob", 100));
+        store.Execute(id, new GameCommand.PlayerTransfer(jan, bob, 100));
 
         // A second store on the same log knows nothing in memory — it must replay.
         var rebuilt = new GameStore(log).Find(id);

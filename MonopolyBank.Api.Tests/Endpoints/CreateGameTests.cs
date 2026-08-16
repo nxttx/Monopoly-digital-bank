@@ -3,7 +3,7 @@ using MonopolyBank.Api.Endpoints;
 using Shouldly;
 using Xunit;
 
-namespace MonopolyBank.Api.Tests;
+namespace MonopolyBank.Api.Tests.Endpoints;
 
 public class CreateGameTests : EndpointTestBase
 {

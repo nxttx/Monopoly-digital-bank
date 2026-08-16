@@ -19,7 +19,7 @@ public abstract record GameCommand
 
     public sealed record Start : GameCommand;
 
-    public sealed record PlayerTransfer(string From, string To, int Amount) : GameCommand;
+    public sealed record PlayerTransfer(Guid From, Guid To, int Amount) : GameCommand;
 
-    public sealed record BankerTransfer(string To, int Amount) : GameCommand;
+    public sealed record BankerTransfer(Guid From, Guid To, int Amount) : GameCommand;
 }
