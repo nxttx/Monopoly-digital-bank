@@ -24,4 +24,7 @@ public static class ApiRoutes
 
     public static string TransferMoney(Guid gameId, Guid fromUserId, Guid toUserId) =>
         $"/games/{gameId}/users/{fromUserId}/transfer-money/{toUserId}/";
+
+    public static string ChargePlayer(Guid gameId, Guid chargerUserId, Guid targetUserId) =>
+        $"/games/{gameId}/users/{chargerUserId}/charge-player/{targetUserId}/";
 }
