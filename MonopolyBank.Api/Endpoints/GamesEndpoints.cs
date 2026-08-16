@@ -21,7 +21,8 @@ public static class GamesEndpoints
         app.MapPost("/games/{gameId:guid}/start", (GameStore store, Guid gameId) =>
                 StartGame(store, gameId).ToHttpResult())
             .Produces<ApiResult<GameStarted>>()
-            .Produces<ApiError>(StatusCodes.Status400BadRequest);
+            .Produces<ApiError>(StatusCodes.Status400BadRequest)
+            .Produces<ApiError>(StatusCodes.Status404NotFound);
     }
 
 
@@ -51,6 +52,12 @@ public static class GamesEndpoints
     public static ApiResponse StartGame(GameStore store, Guid gameId)
     {
         var location = ApiRoutes.GameStart(gameId);
+
+        if (store.Find(gameId) is null)
+            return new ApiError(
+                new HttpCall(location, HttpMethod.Post, HttpStatusCode.NotFound),
+                [new FieldError("GameId", "Game not found.")],
+                new Dictionary<string, Link> { ["Add game"] = new(ApiRoutes.Games, HttpMethod.Post) });
 
         try
         {

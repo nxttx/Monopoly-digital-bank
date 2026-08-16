@@ -376,6 +376,22 @@ public class GamesEndpointsTests
         result.Actions.ShouldContain(new KeyValuePair<string, Link>("Get game details", new Link($"/games/{gameId}/", HttpMethod.Get)));
 
     }
+    
+    [Fact]
+    public void StartUnknownGame_Returns404()
+    {
+        var store = CreateGameStore();
+        var gameId = Guid.NewGuid();
+        
+        var result = GamesEndpoints.StartGame(store, gameId).ShouldBeOfType<ApiError>();
+        
+        result.Http.Location.ShouldBe($"/games/{gameId}/start/");
+        result.Http.Method.ShouldBe(HttpMethod.Post);
+        result.Http.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+        VerifyResultDoesNotContainValueProperty(result);
+        result.Errors.ShouldContain(e => e.Field == "GameId" && e.Message == "Game not found.");
+        result.Actions.ShouldContain(new KeyValuePair<string, Link>("Add game", new Link($"/games/", HttpMethod.Post)));
+    }
 
 
     private static void VerifyResultDoesNotContainValueProperty(ApiResponse result)
