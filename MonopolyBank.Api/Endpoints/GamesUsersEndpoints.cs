@@ -24,7 +24,8 @@ public static class GamesUsersEndpoints
         app.MapPost("/games/{gameId:guid}/users/{fromUserId:guid}/transfer-money/{toUserId:guid}",
                 (GameStore store, Guid gameId, Guid fromUserId, Guid toUserId, int amount) =>
                     TransferMoney(store, gameId, fromUserId, toUserId, amount).ToHttpResult())
-            .Produces<ApiResult<MoneyTransferred>>();
+            .Produces<ApiResult<MoneyTransferred>>()
+            .Produces<ApiError>(StatusCodes.Status400BadRequest);
     }
 
     public static ApiResponse CreateUser(GameStore store, Guid gameId, CreateUserRequest request)
@@ -102,12 +103,29 @@ public static class GamesUsersEndpoints
             new Dictionary<string, Link> { ["Get game details"] = new(ApiRoutes.Game(gameId), HttpMethod.Get) });
     }
 
-    public static ApiResult<MoneyTransferred> TransferMoney(GameStore store, Guid gameId, Guid fromUserId, Guid toUserId, int amount)
+    public static ApiResponse TransferMoney(GameStore store, Guid gameId, Guid fromUserId, Guid toUserId, int amount)
     {
-        store.Execute(gameId, new GameCommand.PlayerTransfer(fromUserId, toUserId, amount));
+        var location = ApiRoutes.TransferMoney(gameId, fromUserId, toUserId);
+
+        try
+        {
+            store.Execute(gameId, new GameCommand.PlayerTransfer(fromUserId, toUserId, amount));
+        }
+        catch (MissingRoleException)
+        {
+            return new ApiError(
+                new HttpCall(location, HttpMethod.Post, HttpStatusCode.BadRequest),
+                [new FieldError("GenericMessage", "A banker cannot transfer money to another player, a banker can only give money to player")],
+                new Dictionary<string, Link>
+                {
+                    ["Get game details"] = new(ApiRoutes.Game(gameId), HttpMethod.Get),
+                    ["Give money (banker -> player)"] = new(ApiRoutes.GiveMoney(gameId, fromUserId, toUserId), HttpMethod.Post),
+                    ["Transfer money (player -> player)"] = new(ApiRoutes.TransferMoney(gameId, fromUserId, toUserId), HttpMethod.Post),
+                });
+        }
 
         return new ApiResult<MoneyTransferred>(
-            new HttpCall(ApiRoutes.TransferMoney(gameId, fromUserId, toUserId), HttpMethod.Post, HttpStatusCode.OK),
+            new HttpCall(location, HttpMethod.Post, HttpStatusCode.OK),
             new MoneyTransferred(gameId, amount, fromUserId, toUserId),
             new Dictionary<string, Link> { ["Get game details"] = new(ApiRoutes.Game(gameId), HttpMethod.Get) });
     }
