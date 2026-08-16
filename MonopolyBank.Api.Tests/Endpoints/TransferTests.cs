@@ -92,7 +92,7 @@ public class TransferTests : EndpointTestBase
         var toUser = store.FindUser(gameId, toId);
         toUser!.Money.Amount.ShouldBe(Game.DefaultStartAmount + transferAmount);
     }
-    
+
     [Fact]
     public void ABankerShouldBeAbleToChargeAPlayersMoney()
     {
@@ -101,17 +101,18 @@ public class TransferTests : EndpointTestBase
         const int transferAmount = 100;
 
 
-       var bankerId = GamesUsersEndpoints.CreateUser(store, gameId, new CreateUserRequest("Bob", nameof(UserRole.Banker)))
-                .ShouldBeOfType<ApiResult<UserCreated>>().Value!.UserId;
+        var bankerId = GamesUsersEndpoints
+            .CreateUser(store, gameId, new CreateUserRequest("Bob", nameof(UserRole.Banker)))
+            .ShouldBeOfType<ApiResult<UserCreated>>().Value!.UserId;
 
         var fromId = GamesUsersEndpoints
             .CreateUser(store, gameId, new CreateUserRequest("Mick", nameof(UserRole.Player)))
             .ShouldBeOfType<ApiResult<UserCreated>>().Value!.UserId;
-        
+
         GamesUsersEndpoints
             .CreateUser(store, gameId, new CreateUserRequest("Alice", nameof(UserRole.Player)))
             .ShouldBeOfType<ApiResult<UserCreated>>();
-        
+
         GamesEndpoints.StartGame(store, gameId).ShouldBeOfType<ApiResult<GameStarted>>();
 
         var result = GamesUsersEndpoints.ChargePlayer(store, gameId, bankerId, fromId, transferAmount)
@@ -132,7 +133,6 @@ public class TransferTests : EndpointTestBase
         store.Find(gameId).ShouldNotBeNull();
         var fromUser = store.FindUser(gameId, fromId);
         fromUser!.Money.Amount.ShouldBe(Game.DefaultStartAmount - transferAmount);
-
     }
 
     [Fact]
@@ -222,13 +222,51 @@ public class TransferTests : EndpointTestBase
         toUser!.Money.Amount.ShouldBe(Game.DefaultStartAmount);
     }
 
-    [Fact(Skip = "not yet written")]
+    [Fact]
     public void APlayerShouldNotBeAbleToGiveMoneyToABanker()
     {
+        var store = CreateGameStore();
+        var gameId = CreateGame(store);
+        const int transferAmount = 100;
+
+
+        var toId = GamesUsersEndpoints.CreateUser(store, gameId, new CreateUserRequest("Bob", nameof(UserRole.Banker)))
+            .ShouldBeOfType<ApiResult<UserCreated>>().Value!.UserId;
+
+        GamesUsersEndpoints
+            .CreateUser(store, gameId, new CreateUserRequest("Mick", nameof(UserRole.Player)))
+            .ShouldBeOfType<ApiResult<UserCreated>>();
+        var fromId = GamesUsersEndpoints
+            .CreateUser(store, gameId, new CreateUserRequest("Allice", nameof(UserRole.Player)))
+            .ShouldBeOfType<ApiResult<UserCreated>>().Value!.UserId;
+
+        GamesEndpoints.StartGame(store, gameId).ShouldBeOfType<ApiResult<GameStarted>>();
+
+        var result = GamesUsersEndpoints.TransferMoney(store, gameId, fromId, toId, transferAmount)
+            .ShouldBeOfType<ApiError>();
+
+        result.Http.Location.ShouldBe($"/games/{gameId}/users/{fromId}/transfer-money/{toId}/");
+        result.Http.Method.ShouldBe(HttpMethod.Post);
+        result.Http.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+
+        VerifyResultDoesNotContainValueProperty(result);
+        result.Errors.ShouldContain(e => e.Field == "GenericMessage" && e.Message ==
+            "A player cannot transfer money to a banker, a banker can only charge a player");
+
+
+        result.Actions.ShouldContain(new KeyValuePair<string, Link>("Get game details",
+            new Link($"/games/{gameId}/", HttpMethod.Get)));
+        result.Actions.ShouldContain(new KeyValuePair<string, Link>("Charge player (banker -> player)",
+            new Link($"/games/{gameId}/users/{toId}/charge-player/{fromId}/", HttpMethod.Post)));
+
+        store.Find(gameId).ShouldNotBeNull();
+        var fromUser = store.FindUser(gameId, fromId);
+        fromUser!.Money.Amount.ShouldBe(Game.DefaultStartAmount);
     }
 
     [Fact(Skip = "not yet written")]
     public void APlayerShouldNotBeAbleToStealFromAnotherPlayer()
     {
+        // this needs jwt authentication
     }
 }

@@ -112,6 +112,19 @@ public static class GamesUsersEndpoints
     {
         var location = ApiRoutes.TransferMoney(gameId, fromUserId, toUserId);
 
+        // The domain guards only the SENDER's role (receiving is deliberately
+        // unguarded — its types made paying a banker unrepresentable). Resolving
+        // users by id hands out any Player facet, so the API restores that rule.
+        if (store.FindUser(gameId, toUserId) is { Role: UserRole.Banker })
+            return new ApiError(
+                new HttpCall(location, HttpMethod.Post, HttpStatusCode.BadRequest),
+                [new FieldError("GenericMessage", "A player cannot transfer money to a banker, a banker can only charge a player")],
+                new Dictionary<string, Link>
+                {
+                    ["Get game details"] = new(ApiRoutes.Game(gameId), HttpMethod.Get),
+                    ["Charge player (banker -> player)"] = new(ApiRoutes.ChargePlayer(gameId, toUserId, fromUserId), HttpMethod.Post),
+                });
+
         try
         {
             store.Execute(gameId, new GameCommand.PlayerTransfer(fromUserId, toUserId, amount));
