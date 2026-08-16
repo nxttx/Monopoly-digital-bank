@@ -21,6 +21,10 @@ public static class GamesUsersEndpoints
                 (GameStore store, Guid gameId, Guid fromUserId, Guid toUserId, int amount) =>
                     GiveMoney(store, gameId, fromUserId, toUserId, amount).ToHttpResult())
             .Produces<ApiResult<MoneyTransferred>>();
+        app.MapPost("/games/{gameId:guid}/users/{fromUserId:guid}/transfer-money/{toUserId:guid}",
+                (GameStore store, Guid gameId, Guid fromUserId, Guid toUserId, int amount) =>
+                    TransferMoney(store, gameId, fromUserId, toUserId, amount).ToHttpResult())
+            .Produces<ApiResult<MoneyTransferred>>();
     }
 
     public static ApiResponse CreateUser(GameStore store, Guid gameId, CreateUserRequest request)
@@ -94,6 +98,16 @@ public static class GamesUsersEndpoints
 
         return new ApiResult<MoneyTransferred>(
             new HttpCall(ApiRoutes.GiveMoney(gameId, fromUserId, toUserId), HttpMethod.Post, HttpStatusCode.OK),
+            new MoneyTransferred(gameId, amount, fromUserId, toUserId),
+            new Dictionary<string, Link> { ["Get game details"] = new(ApiRoutes.Game(gameId), HttpMethod.Get) });
+    }
+
+    public static ApiResult<MoneyTransferred> TransferMoney(GameStore store, Guid gameId, Guid fromUserId, Guid toUserId, int amount)
+    {
+        store.Execute(gameId, new GameCommand.PlayerTransfer(fromUserId, toUserId, amount));
+
+        return new ApiResult<MoneyTransferred>(
+            new HttpCall(ApiRoutes.TransferMoney(gameId, fromUserId, toUserId), HttpMethod.Post, HttpStatusCode.OK),
             new MoneyTransferred(gameId, amount, fromUserId, toUserId),
             new Dictionary<string, Link> { ["Get game details"] = new(ApiRoutes.Game(gameId), HttpMethod.Get) });
     }
