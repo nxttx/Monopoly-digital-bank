@@ -264,9 +264,48 @@ public class TransferTests : EndpointTestBase
         fromUser!.Money.Amount.ShouldBe(Game.DefaultStartAmount);
     }
 
-    [Fact(Skip = "not yet written")]
+    [Fact]
     public void APlayerShouldNotBeAbleToStealFromAnotherPlayer()
     {
-        // this needs jwt authentication
+        var store = CreateGameStore();
+        var gameId = CreateGame(store);
+        const int transferAmount = -100;
+        
+        GamesUsersEndpoints.CreateUser(store, gameId, new CreateUserRequest("Bob", nameof(UserRole.Banker)))
+            .ShouldBeOfType<ApiResult<UserCreated>>();
+
+        var toId = GamesUsersEndpoints
+            .CreateUser(store, gameId, new CreateUserRequest("Mick", nameof(UserRole.Player)))
+            .ShouldBeOfType<ApiResult<UserCreated>>().Value!.UserId;
+        var fromId = GamesUsersEndpoints
+            .CreateUser(store, gameId, new CreateUserRequest("Allice", nameof(UserRole.Player)))
+            .ShouldBeOfType<ApiResult<UserCreated>>().Value!.UserId;
+
+        GamesEndpoints.StartGame(store, gameId).ShouldBeOfType<ApiResult<GameStarted>>();
+
+        var result = GamesUsersEndpoints.TransferMoney(store, gameId, fromId, toId, transferAmount)
+            .ShouldBeOfType<ApiError>();
+
+        result.Http.Location.ShouldBe($"/games/{gameId}/users/{fromId}/transfer-money/{toId}/");
+        result.Http.Method.ShouldBe(HttpMethod.Post);
+        result.Http.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+
+        VerifyResultDoesNotContainValueProperty(result);
+        result.Errors.ShouldContain(e => e.Field == "GenericMessage" && e.Message ==
+            "A player cannot transfer a negative amount of money");
+
+
+        result.Actions.ShouldContain(new KeyValuePair<string, Link>("Get game details",
+            new Link($"/games/{gameId}/", HttpMethod.Get)));
+        result.Actions.ShouldContain(new KeyValuePair<string, Link>("Charge player (banker -> player)",
+            new Link($"/games/{gameId}/users/{toId}/charge-player/{fromId}/", HttpMethod.Post)));
+
+        store.Find(gameId).ShouldNotBeNull();
+        
+        var toUser = store.FindUser(gameId, toId);
+        toUser!.Money.Amount.ShouldBe(Game.DefaultStartAmount);
+        
+        var fromUser = store.FindUser(gameId, fromId);
+        fromUser!.Money.Amount.ShouldBe(Game.DefaultStartAmount);
     }
 }

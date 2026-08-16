@@ -129,6 +129,17 @@ public static class GamesUsersEndpoints
         {
             store.Execute(gameId, new GameCommand.PlayerTransfer(fromUserId, toUserId, amount));
         }
+        catch (NegativeTransferException)
+        {
+            return new ApiError(
+                new HttpCall(location, HttpMethod.Post, HttpStatusCode.BadRequest),
+                [new FieldError("GenericMessage", "A player cannot transfer a negative amount of money")],
+                new Dictionary<string, Link>
+                {
+                    ["Get game details"] = new(ApiRoutes.Game(gameId), HttpMethod.Get),
+                    ["Charge player (banker -> player)"] = new(ApiRoutes.ChargePlayer(gameId, toUserId, fromUserId), HttpMethod.Post),
+                });
+        }
         catch (MissingRoleException)
         {
             return new ApiError(
